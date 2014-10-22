@@ -1,0 +1,50 @@
+[
+    {
+        "name": "mailchimp/mailchimp",
+        "version": "2.0.5",
+        "version_normalized": "2.0.5.0",
+        "source": {
+            "type": "git",
+            "url": "https://bitbucket.org/mailchimp/mailchimp-api-php.git",
+            "reference": "a884ee03dd282deddfc471257b01fd09e5cd06dc"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://bitbucket.org/mailchimp/mailchimp-api-php/get/a884ee03dd282deddfc471257b01fd09e5cd06dc.zip",
+            "reference": "a884ee03dd282deddfc471257b01fd09e5cd06dc",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.2.0"
+        },
+        "require-dev": {
+            "apigen/apigen": "dev-master"
+        },
+        "time": "2014-06-09 21:40:35",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Mailchimp": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "MailChimp Devs",
+                "email": "api@mailchimp.com",
+                "homepage": "http://mailchimp.com",
+                "role": "Developer"
+            }
+        ],
+        "description": "API client library for the MailChimp bulk email as a service platform",
+        "homepage": "https://bitbucket.org/mailchimp/mailchimp-api-php",
+        "keywords": [
+            "api",
+            "email"
+        ]
+    }
+]

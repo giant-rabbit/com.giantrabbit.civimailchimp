@@ -1,6 +1,7 @@
 <?php
 
 require_once 'civimailchimp.civix.php';
+require 'vendor/autoload.php';
 
 /**
  * Implementation of hook_civicrm_config

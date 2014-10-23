@@ -110,13 +110,13 @@ function _civimailchimp_civix_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL
 }
 
 /**
- * @return CRM_Civimailchimp_Upgrader
+ * @return CRM_CiviMailchimp_Upgrader
  */
 function _civimailchimp_civix_upgrader() {
-  if (!file_exists(__DIR__.'/CRM/Civimailchimp/Upgrader.php')) {
+  if (!file_exists(__DIR__.'/CRM/CiviMailchimp/Upgrader.php')) {
     return NULL;
   } else {
-    return CRM_Civimailchimp_Upgrader_Base::instance();
+    return CRM_CiviMailchimp_Upgrader_Base::instance();
   }
 }
 

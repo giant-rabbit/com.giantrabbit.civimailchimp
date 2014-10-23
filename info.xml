@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <extension key="com.giantrabbit.civimailchimp" type="module">
   <file>civimailchimp</file>
-  <name>CiviMailChimp</name>
-  <description>MailChimp integration for CiviCRM.</description>
+  <name>CiviMailchimp</name>
+  <description>Mailchimp integration for CiviCRM.</description>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>Anthony Nemirovsky</author>
@@ -22,6 +22,6 @@
   </compatibility>
   <comments>Developed by Giant Rabbit.</comments>
   <civix>
-    <namespace>CRM/CiviMailChimp</namespace>
+    <namespace>CRM/CiviMailchimp</namespace>
   </civix>
 </extension>

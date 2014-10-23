@@ -107,3 +107,53 @@ function civimailchimp_civicrm_caseTypes(&$caseTypes) {
 function civimailchimp_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _civimailchimp_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
+
+/**
+ * Implementation of hook_civicrm_navigationMenu
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
+ */
+function civimailchimp_civicrm_navigationMenu(&$params) {
+  $administer_nav_id = CRM_Core_DAO::getFieldValue('CRM_Core_BAO_Navigation', 'Administer', 'id', 'name');
+  if ($administer_nav_id) {
+    $weight = max(array_keys($params[$administer_nav_id]['child']));
+    $params[$administer_nav_id]['child'][$weight+1] = array(
+      'attributes' => array(
+        'label' => 'CiviMailchimp',
+        'name' => 'CiviMailchimp',
+        'url' => NULL,
+        'permission' => 'administer CiviCRM',
+        'operator' => NULL,
+        'parentID' => $administer_nav_id,
+        'navID' => NULL,
+        'active' => 1,
+      ),
+      'child' => array(
+        0 => array(
+          'attributes' => array(
+            'label' => 'Mailchimp Settings',
+            'name' => 'Mailchimp Settings',
+            'url' => 'civicrm/admin/mailchimp/settings?reset=1',
+            'permission' => 'administer CiviCRM',
+            'operator' => NULL,
+            'parentID' => NULL,
+            'navID' => NULL,
+            'active' => 1,
+          ),
+        ),
+        1 => array(
+          'attributes' => array(
+            'label' => 'Force Sync',
+            'name' => 'Force Sync',
+            'url' => 'civicrm/admin/mailchimp/sync?reset=1',
+            'permission' => 'administer CiviCRM',
+            'operator' => NULL,
+            'parentID' => NULL,
+            'navID' => NULL,
+            'active' => 1,
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -87,19 +87,6 @@ function civimailchimp_civicrm_managed(&$entities) {
 }
 
 /**
- * Implementation of hook_civicrm_caseTypes
- *
- * Generate a list of case-types
- *
- * Note: This hook only runs in CiviCRM 4.4+.
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_caseTypes
- */
-function civimailchimp_civicrm_caseTypes(&$caseTypes) {
-  _civimailchimp_civix_civicrm_caseTypes($caseTypes);
-}
-
-/**
  * Implementation of hook_civicrm_alterSettingsFolders
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_alterSettingsFolders

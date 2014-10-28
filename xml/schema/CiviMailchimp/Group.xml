@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/CiviMailchimp</base>
+  <class>Group</class>
+  <name>civimailchimp_group</name>
+  <comment>Mailchimp settings for groups.</comment>
+  <add>4.2</add>
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique Identifier</comment>
+    <add>4.2</add>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+  <field>
+    <name>civicrm_group_id</name>
+    <type>int unsigned</type>
+    <comment>FK to CiviCRM Group ID.</comment>
+    <add>4.2</add>
+  </field>
+  <foreignKey>
+    <name>civicrm_group_id</name>
+    <table>civicrm_group</table>
+    <key>id</key>
+    <add>4.2</add>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+  <field>
+    <name>mailchimp_list_id</name>
+    <type>varchar</type>
+    <length>255</length>
+    <required>true</required>
+    <comment>Mailchimp List ID</comment>
+    <add>4.2</add>
+  </field>
+  <field>
+    <name>mailchimp_interest_group_id</name>
+    <type>varchar</type>
+    <length>255</length>
+    <required>false</required>
+    <comment>Mailchimp List Interest Group ID</comment>
+    <add>4.2</add>
+  </field>
+</table>

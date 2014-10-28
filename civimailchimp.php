@@ -11,10 +11,10 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
     $mailchimp_lists = CRM_CiviMailchimp_Utils::get_lists();
     $select_options = CRM_CiviMailchimp_Utils::format_lists_as_select_options($mailchimp_lists);
     $interest_groups_lookup = CRM_CiviMailchimp_Utils::format_interest_groups_lookup($mailchimp_lists);
-    $settings = json_encode(array('interest_groups_lookup' => $interest_groups_lookup));
+    $settings = array('civiMailchimp' => array('interest_groups_lookup' => $interest_groups_lookup));
     CRM_Core_Resources::singleton()
-      ->addScript("CRM.civiMailchimp = {$settings};", 9, 'page-body')
-      ->addScriptFile('com.giantrabbit.civimailchimp', 'js/group_add_edit_form.js', 10, 'page-body');
+      ->addScriptFile('com.giantrabbit.civimailchimp', 'js/group_add_edit_form.js')
+      ->addSetting($settings);
     $form->add('select', 'mailchimp_list', ts('Mailchimp List'), $select_options, FALSE, array('class' => 'crm-select2'));
     $form->add('select', 'mailchimp_interest_groups', ts('Mailchimp Interest Groups'), $interest_groups_lookup, FALSE, array('multiple' => 'multiple', 'class' => 'crm-select2'));
   }

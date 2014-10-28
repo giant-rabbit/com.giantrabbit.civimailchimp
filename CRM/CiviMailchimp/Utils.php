@@ -74,39 +74,4 @@ class CRM_CiviMailchimp_Utils {
     }
     return $interest_groups_lookup;
   }
-
-  /**
-   * Find the CiviMailchimp Group sync configuration for a given group ID.
-   */
-  static function findGroupMailchimpSettingsByGroupId($group_id) {
-    $query = "
-      SELECT
-        *
-      FROM
-        civimailchimp_group
-      WHERE
-        civicrm_group_id = %1
-    ";
-    $params = array(
-      1 => array(
-        $group_id, 'Integer'
-      ),
-    );
-    $result = CRM_Core_DAO::executeQuery($query, $params);
-    return $result;
-  }
-
-  /**
-   * Add or update a CiviMailchimp Group sync configuration entry.
-   */
-  static function updateGroupMailchimpSettings($params) {
-    $existing_group = self::findGroupMailchimpSettingsByGroupId($params['civicrm_group_id']);
-  }
-
-  /**
-   * Delete a CiviMailchimp Group sync configuration entry.
-   */
-  static function deleteGroupMailchimpSettings($params) {
-
-  }
 }

@@ -11,8 +11,8 @@ CRM.$(function($) {
       this.filtered_interest_groups = [];
       this.interest_group_options = '';
 
+      this.showHideInterestGroupsField();
       this.list_field.change($.proxy(this.updateField, this));
-      this.updateField();
 
       $('#mailchimp-settings').insertBefore('table + .crm-submit-buttons');
     },
@@ -21,12 +21,7 @@ CRM.$(function($) {
       this.filterInterestGroups();
       this.formatNewOptions();
       this.replaceOptions();
-      if (this.interest_group_options) {
-        this.interest_groups_field_wrapper.show();
-      }
-      else {
-        this.interest_groups_field_wrapper.hide();
-      }
+      this.showHideInterestGroupsField();
     },
     clearOptions: function() {
       this.interest_group_options = '';
@@ -48,7 +43,16 @@ CRM.$(function($) {
     },
     replaceOptions: function() {
       this.interest_groups_field.append(this.interest_group_options);
-    }, 
+    },
+    showHideInterestGroupsField: function() {
+      var current_field_options = this.interest_groups_field.children('option');
+      if (this.interest_group_options || this.interest_groups_field.val() || current_field_options[0]) {
+        this.interest_groups_field_wrapper.show();
+      }
+      else {
+        this.interest_groups_field_wrapper.hide();
+      }
+    },
   }
 
   var interest_groups = new CRM.civiMailchimp.interestGroups();

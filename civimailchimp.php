@@ -8,16 +8,45 @@ require_once 'vendor/autoload.php';
  */
 function civimailchimp_civicrm_buildForm($formName, &$form) {
   if ($formName === "CRM_Group_Form_Edit") {
-    $mailchimp_lists = CRM_CiviMailchimp_Utils::get_lists();
-    $select_options = CRM_CiviMailchimp_Utils::format_lists_as_select_options($mailchimp_lists);
-    $interest_groups_lookup = CRM_CiviMailchimp_Utils::format_interest_groups_lookup($mailchimp_lists);
-    $settings = array('civiMailchimp' => array('interest_groups_lookup' => $interest_groups_lookup));
-    CRM_Core_Resources::singleton()
-      ->addScriptFile('com.giantrabbit.civimailchimp', 'js/group_add_edit_form.js')
-      ->addSetting($settings);
-    $form->add('select', 'mailchimp_list', ts('Mailchimp List'), $select_options, FALSE, array('class' => 'crm-select2'));
-    $form->add('select', 'mailchimp_interest_groups', ts('Mailchimp Interest Groups'), $interest_groups_lookup, FALSE, array('multiple' => 'multiple', 'class' => 'crm-select2'));
+    try {
+      $mailchimp_lists = CRM_CiviMailchimp_Utils::get_lists();
+    }
+    catch (Exception $e) {
+      $mailchimp_lists = NULL;
+      civimailchimp_civicrm_catchMailchimpApiError($e);
+    }
+    if ($mailchimp_lists) {
+      $group_id = $form->getVar('_id');
+      $list_options = CRM_CiviMailchimp_Utils::format_lists_as_select_options($mailchimp_lists);
+      $interest_groups_lookup = CRM_CiviMailchimp_Utils::format_interest_groups_lookup($mailchimp_lists);
+      $interest_groups_options = '';
+      if ($group_id) {
+        $civimailchimp_group = CRM_CiviMailchimp_BAO_Group::findByGroupId($group_id);
+        if ($civimailchimp_group) { 
+          $interest_groups_options = $interest_groups_lookup[$civimailchimp_group->mailchimp_list_id];
+          dd($interest_groups_options);
+          civimailchimp_civicrm_setDefaults(&$form, $civimailchimp_group);
+        }
+      }
+      $form->add('select', 'mailchimp_list', ts('Mailchimp List'), $list_options, FALSE, array('class' => 'crm-select2'));
+      $form->add('select', 'mailchimp_interest_groups', ts('Mailchimp Interest Groups'), $interest_groups_options, FALSE, array('multiple' => 'multiple', 'class' => 'crm-select2'));
+      CRM_Core_Resources::singleton()
+        ->addScriptFile('com.giantrabbit.civimailchimp', 'js/group_add_edit_form.js')
+        ->addSetting(array('civiMailchimp' => array('interest_groups_lookup' => $interest_groups_lookup)));
+    }
   }
+}
+
+function civimailchimp_civicrm_setDefaults(&$form, $civimailchimp_group) {
+  $mailchimp_interest_groups = '';
+  if (!empty($civimailchimp_group->mailchimp_interest_group_id)) {
+    $mailchimp_interest_groups = implode(",", unserialize($civimailchimp_group->mailchimp_interest_group_id));
+  }
+  $defaults = array(
+    'mailchimp_list' => $civimailchimp_group->mailchimp_list_id,
+    'mailchimp_interest_groups' => $mailchimp_interest_groups,
+  );
+  $form->setDefaults($defaults);
 }
 
 /**
@@ -25,20 +54,44 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
  */
 function civimailchimp_civicrm_postProcess($formName, &$form) {
   if ($formName === "CRM_Group_Form_Edit") {
-    $params['civicrm_group_id'] = $form->getVar('_id');
-    if (isset($form->_submitValues['mailchimp_list'])) {
-      $params['mailchimp_list_id'] = $form->_submitValues['mailchimp_list'];
-      $mailchimp_interest_groups = '';
-      if (isset($form->_submitValues['mailchimp_interest_groups'])) {
-        $mailchimp_interest_groups = serialize($form->_submitValues['mailchimp_interest_groups']);
+    // If the Mailchimp API call fails, the mailchimp_list field will not be
+    // added to the form, so we want to retain the existing Mailchimp List
+    // sync settings for the group, if the group is edited.
+    if (isset($form->_elementIndex['mailchimp_list'])) {
+      $params['civicrm_group_id'] = $form->getVar('_id');
+      // When creating a new group, the group ID is only accessible from the
+      // 'amtgID' session variable.
+      if (empty($params['civicrm_group_id'])) {
+        $params['civicrm_group_id'] = $form->get('amtgID');
       }
-      $params['mailchimp_interest_group_id'] = $mailchimp_interest_groups;
-      CRM_CiviMailchimp_Utils::updateGroupMailchimpSettings($params);
-    }
-    else {
-      CRM_CiviMailchimp_Utils::deleteGroupMailchimpSettings($params);
+      if ($form->_submitValues['mailchimp_list']) {
+        $params['mailchimp_list_id'] = $form->_submitValues['mailchimp_list'];
+        $mailchimp_interest_groups = '';
+        if (isset($form->_submitValues['mailchimp_interest_groups'])) {
+          $mailchimp_interest_groups = serialize($form->_submitValues['mailchimp_interest_groups']);
+        }
+        $params['mailchimp_interest_group_id'] = $mailchimp_interest_groups;
+        CRM_CiviMailchimp_BAO_Group::updateSettings($params);
+      }
+      else {
+        CRM_CiviMailchimp_BAO_Group::deleteSettings($params);
+      }
     }
   }
+}
+
+function civimailchimp_civicrm_catchMailchimpApiError($exception) {
+  // If the Mailchimp API call fails, we want to still allow admins to
+  // create or edit a group.
+  $error = array(
+    'code' => get_class($exception),
+    'message' => $exception->getMessage(),
+  );
+  $message = ts("There was an error when trying to retrieve available Mailchimp Lists to sync to a group. {$error['code']}: {$error['message']}.");
+  $session = CRM_Core_Session::singleton();
+  $session->setStatus($message, ts("Mailchimp API Error"), 'alert', array('expires' => 0));
+  CRM_Core_Error::debug_var('Fatal Error Details', $error);
+  CRM_Core_Error::backtrace('backTrace', TRUE);
 }
 
 /**

@@ -3,28 +3,54 @@
 require_once 'civimailchimp.civix.php';
 require_once 'vendor/autoload.php';
 
+function civimailchimp_civicrm_contact_added_to_group($group, $contact) {
+  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_Group::getSyncSettingsByGroupId($group->id);
+  if ($mailchimp_sync_setting) {
+    // queue subscribe.
+  }
+}
+
+function civimailchimp_civicrm_contact_removed_from_group($group, $contact) {
+  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_Group::getSyncSettingsByGroupId($group->id);
+  if ($mailchimp_sync_setting) {
+    // queue unsubscribe.
+  }
+}
+
+function civimailchimp_civicrm_contact_updated($old_contact, $new_contact) {
+  $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_Group::getMailchimpSyncSettingsByContactId($new_contact->id);
+  if ($mailchimp_sync_settings) {
+    // compare old and new contact data
+    $contact_mailchimp_merge_fields_changed = TRUE;
+    if ($contact_mailchimp_merge_fields_changed) {
+      // queue profile update.
+    }
+  }
+}
+
 /**
  * Implementation of hook_civicrm_buildForm
  */
 function civimailchimp_civicrm_buildForm($formName, &$form) {
   if ($formName === "CRM_Group_Form_Edit") {
     try {
-      $mailchimp_lists = CRM_CiviMailchimp_Utils::get_lists();
+      $mailchimp_lists = CRM_CiviMailchimp_Utils::getLists();
     }
     catch (Exception $e) {
       $mailchimp_lists = NULL;
-      civimailchimp_civicrm_catchMailchimpApiError($e);
+      civimailchimp_catchMailchimpApiError($e);
     }
     if ($mailchimp_lists) {
       $group_id = $form->getVar('_id');
-      $list_options = CRM_CiviMailchimp_Utils::format_lists_as_select_options($mailchimp_lists);
-      $interest_groups_lookup = CRM_CiviMailchimp_Utils::format_interest_groups_lookup($mailchimp_lists);
+      $list_options = CRM_CiviMailchimp_Utils::formatListsAsSelectOptions($mailchimp_lists);
+      $interest_groups_lookup = CRM_CiviMailchimp_Utils::formatInterestGroupsLookup($mailchimp_lists);
       $interest_groups_options = '';
       if ($group_id) {
         $civimailchimp_group = CRM_CiviMailchimp_BAO_Group::findByGroupId($group_id);
-        if ($civimailchimp_group) { 
-          $interest_groups_options = $interest_groups_lookup[$civimailchimp_group->mailchimp_list_id];
-          dd($interest_groups_options);
+        if ($civimailchimp_group) {
+          if (isset($interest_groups_lookup[$civimailchimp_group->mailchimp_list_id])) { 
+            $interest_groups_options = $interest_groups_lookup[$civimailchimp_group->mailchimp_list_id];
+          }
           civimailchimp_civicrm_setDefaults(&$form, $civimailchimp_group);
         }
       }
@@ -37,6 +63,9 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
   }
 }
 
+/**
+ * Sets default values for the Mailchimp sync settings for a group.
+ */
 function civimailchimp_civicrm_setDefaults(&$form, $civimailchimp_group) {
   $mailchimp_interest_groups = '';
   if (!empty($civimailchimp_group->mailchimp_interest_group_id)) {
@@ -80,7 +109,10 @@ function civimailchimp_civicrm_postProcess($formName, &$form) {
   }
 }
 
-function civimailchimp_civicrm_catchMailchimpApiError($exception) {
+/**
+ * Catch a Mailchimp API error and add an entry to the CiviCRM log file.
+ */
+function civimailchimp_catchMailchimpApiError($exception) {
   // If the Mailchimp API call fails, we want to still allow admins to
   // create or edit a group.
   $error = array(
@@ -92,6 +124,121 @@ function civimailchimp_civicrm_catchMailchimpApiError($exception) {
   $session->setStatus($message, ts("Mailchimp API Error"), 'alert', array('expires' => 0));
   CRM_Core_Error::debug_var('Fatal Error Details', $error);
   CRM_Core_Error::backtrace('backTrace', TRUE);
+}
+
+/**
+ * Implements hook_civicrm_pre for GroupContact create.
+ */
+function civimailchimp_civicrm_pre_GroupContact_create($group_id, &$contact_ids) {
+  // The create operation for GroupContact is thrown for every existing and
+  // new group when a contact is saved, so we have to do some extra work
+  // to determine whether the contact has just been added to the group or
+  // not. We're storing the actually added Groups in a static variable for
+  // use in the civicrm_post hook.
+  foreach ($contact_ids as $contact_id) {
+    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($group_id, $contact_id);
+    if ($contact_added_to_group) {
+      $groups_contact_added_to = civimailchimp_static('groups_contact_added_to');
+      $groups_contact_added_to[$group_id][] = $contact_id;
+      civimailchimp_static('groups_contact_added_to', $groups_contact_added_to);
+    }
+  }
+}
+
+/**
+ * Implements hook_civicrm_pre for Individual and Organization edit.
+ */
+function civimailchimp_civicrm_pre_Contact_edit($contact_id, &$contact) {
+  $old_contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
+  civimailchimp_static('old_contact', $old_contact);
+}
+
+/**
+ * Implements hook_civicrm_post for GroupContact create.
+ */
+function civimailchimp_civicrm_post_GroupContact_create($group_id, &$contact_ids) {
+  $groups_contact_added_to = civimailchimp_static('groups_contact_added_to');
+  if ($groups_contact_added_to) {
+    foreach ($groups_contact_added_to as $group_id => $contact_ids) {
+      $group = CRM_CiviMailchimp_Utils::getGroupById($group_id);
+      foreach ($contact_ids as $contact_id) {
+        $contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
+        civimailchimp_civicrm_contact_added_to_group($group, $contact);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_civicrm_post for GroupContact delete.
+ */
+function civimailchimp_civicrm_post_GroupContact_delete($group_id, &$contact_ids) {
+  $group = CRM_CiviMailchimp_Utils::getGroupById($group_id);
+  foreach ($contact_ids as $contact_id) {
+    $contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
+    civimailchimp_civicrm_contact_removed_from_group($group, $contact);
+  }
+}
+
+/**
+ * Implements hook_civicrm_post for Individual and Organization edit.
+ */
+function civimailchimp_civicrm_post_Contact_edit($contact_id, &$contact) {
+  $old_contact = civimailchimp_static('old_contact');
+  $new_contact = $contact;
+  civimailchimp_civicrm_contact_updated($old_contact, $new_contact);
+}
+
+/**
+ * Implements hook_civicrm_post for Individual and Organization delete.
+ */
+function civimailchimp_civicrm_post_Contact_delete($contact_id, &$contact) {
+  $params = array("contact_id" => $contact_id);
+  $contact_groups = CRM_Contact_BAO_Group::getGroups($params);
+  foreach ($contact_groups as $group) {
+    civimailchimp_civicrm_contact_removed_from_group($group, $contact);
+  }
+}
+
+/**
+ * Implementation of hook_civicrm_pre
+ */
+function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
+  if ($object_name === "Individual" || $object_name === "Organization") {
+    $object_name = "Contact";
+  }
+  $function_name = "civimailchimp_civicrm_pre_{$object_name}_{$op}";
+  if (is_callable($function_name))
+  {
+    call_user_func($function_name, $id, &$params);
+  }
+}
+
+/**
+ * Implementation of hook_civicrm_post
+ */
+function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
+  if ($object_name === "Individual" || $object_name === "Organization") {
+    $object_name = "Contact";
+  }
+  $function_name = "civimailchimp_civicrm_post_{$object_name}_{$op}";
+  if (is_callable($function_name))
+  {
+    call_user_func($function_name, $object_id, &$object);
+  }
+}
+
+/**
+ * Stores a static variable of a certain name for later retrieval.
+ */
+function civimailchimp_static($name, $new_value = NULL) {
+  static $data = NULL;
+  if ($new_value != NULL) {
+    $data[$name] = $new_value;
+  }
+  if (isset($data[$name])) {
+    return $data[$name];
+  }
 }
 
 /**

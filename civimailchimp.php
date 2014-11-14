@@ -20,10 +20,33 @@ function civimailchimp_civicrm_contact_removed_from_group($group, $contact) {
 function civimailchimp_civicrm_contact_updated($old_contact, $new_contact) {
   $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_Group::getMailchimpSyncSettingsByContactId($new_contact->id);
   if ($mailchimp_sync_settings) {
-    // compare old and new contact data
-    $contact_mailchimp_merge_fields_changed = TRUE;
-    if ($contact_mailchimp_merge_fields_changed) {
-      // queue profile update.
+    $contact_mailchimp_merge_fields_changed = FALSE;
+    $old_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($old_contact);
+    $new_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($new_contact);
+    if ($old_email !== $new_email) {
+      $contact_mailchimp_merge_fields_changed = TRUE;
+    }
+    $civicrm_fields_already_checked = array();
+    foreach ($mailchimp_sync_settings as $mailchimp_sync_setting) {
+      $merge_fields = CRM_CiviMailchimp_Utils::mailchimpMergeFields($mailchimp_sync_setting->mailchimp_list_id);
+      if (!$contact_mailchimp_merge_fields_changed) {
+        foreach ($merge_fields as $merge_field => $civicrm_field) {
+          if (!isset($civicrm_fields_already_checked[$civicrm_field]) && $old_contact->$civicrm_field !== $new_contact->$civicrm_field) {
+            //dpm("{$mailchimp_sync_setting->mailchimp_list_id} {$merge_field}");
+            $contact_mailchimp_merge_fields_changed = TRUE;
+            continue;
+          }
+          $civicrm_fields_already_checked[$civicrm_field] = 'checked';
+        }
+      }
+      if ($contact_mailchimp_merge_fields_changed) {
+        $mailchimp_profile_data = array();
+        foreach ($merge_fields as $merge_field => $civicrm_field) {
+          $mailchimp_profile_data[$merge_field] = $civicrm_field;
+        }
+        // also include email and interest groups...
+        // queue profile update.
+      }
     }
   }
 }

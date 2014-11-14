@@ -76,6 +76,45 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
+   * Get the merge fields configured for a particular list. If the merge fields
+   * for a list are not specified, return the default merge fields.
+   */
+  static function mailchimpMergeFields($list_id = NULL) {
+    $merge_fields = array(
+      'FNAME' => 'first_name',
+      'LNAME' => 'last_name',
+    );
+    $custom_merge_fields = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_merge_fields'); 
+    if ($custom_merge_fields) {
+      if ($list_id && isset($custom_merge_fields[$list_id])) {
+        $merge_fields = $custom_merge_fields[$list_id];
+      }
+    }
+    return $merge_fields;
+  }
+
+  /**
+   * Determine the appropriate email to use for Mailchimp for a given contact.
+   */
+  static function determineMailchimpEmailForContact($contact) {
+    dpm($contact->email);
+    $mailchimp_email = NULL;
+    if (!$contact->do_not_email && !$contact->is_opt_out) {
+      foreach ($contact->email as $email) {
+        if ($email->is_bulkmail) {
+          $mailchimp_email = $email->email;
+          continue;
+        }
+        elseif ($email->is_primary) {
+          $mailchimp_email = $email->email;
+        }
+      }
+    }
+    dpm($mailchimp_email);
+    return $mailchimp_email;
+  }
+
+  /**
    * Check if a group has just been added for a contact.
    */
   static function contactAddedToGroup($group_id, $contact_id) {
@@ -94,7 +133,6 @@ class CRM_CiviMailchimp_Utils {
       2 => array($contact_id, 'Integer')
     );
     $status = CRM_Core_DAO::singleValueQuery($query, $params);
-    dd($status, "status");
     if ($status !== "Added") {
       return TRUE;
     }
@@ -112,6 +150,7 @@ class CRM_CiviMailchimp_Utils {
     }
     $emails = new CRM_Core_BAO_Email();
     $emails->contact_id = $contact->id;
+    $emails->find();
     while ($emails->fetch()) {
       $email = clone $emails;
       $contact->email[] = $email;

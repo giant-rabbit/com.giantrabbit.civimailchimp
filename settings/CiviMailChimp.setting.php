@@ -21,4 +21,15 @@ return array (
     ),
     'quick_form_type' => 'Element',
   ),
+  'mailchimp_merge_fields' => array(
+    'group_name' => 'CiviMailchimp Preferences',
+    'group' => 'civimailchimp',
+    'name' => 'mailchimp_merge_fields',
+    'type' => 'Array',
+    'add' => '4.2',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'title' => 'Mailchimp Merge Fields',
+    'description' => 'Custom merge fields declaration for Mailchimp lists.'
+  ),
 );

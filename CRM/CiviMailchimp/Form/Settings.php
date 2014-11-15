@@ -14,6 +14,7 @@ class CRM_CiviMailchimp_Form_Settings extends CRM_Core_Form {
 
   function buildQuickForm() {
     $settings = $this->getFormSettings();
+    $descriptions = array();
     foreach ($settings as $name => $setting) {
       if (isset($setting['quick_form_type'])) {
         $add = 'add' . $setting['quick_form_type'];
@@ -23,9 +24,10 @@ class CRM_CiviMailchimp_Form_Settings extends CRM_Core_Form {
         else {
           $this->$add($name, ts($setting['title']));
         }
-        $this->assign("{$setting['description']}_description", ts('description'));
+        $descriptions[$name] = $setting['description'];
       }
     }
+    $this->assign("description", $descriptions);
 
     $this->addButtons(array (
       array (

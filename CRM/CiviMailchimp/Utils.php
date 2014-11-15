@@ -97,20 +97,23 @@ class CRM_CiviMailchimp_Utils {
    * Determine the appropriate email to use for Mailchimp for a given contact.
    */
   static function determineMailchimpEmailForContact($contact) {
-    dpm($contact->email);
     $mailchimp_email = NULL;
     if (!$contact->do_not_email && !$contact->is_opt_out) {
       foreach ($contact->email as $email) {
-        if ($email->is_bulkmail) {
-          $mailchimp_email = $email->email;
-          continue;
-        }
-        elseif ($email->is_primary) {
-          $mailchimp_email = $email->email;
+        // We have to explicitly check for 'null' as the $contact object
+        // included in hook_civicrm_post has 'null' in a bunch of places where
+        // it should be NULL.
+        if (!$email->on_hold || $email->on_hold === 'null') {
+          if ($email->is_bulkmail && $email->is_bulkmail !== 'null') {
+            $mailchimp_email = $email->email;
+            continue;
+          }
+          elseif ($email->is_primary) {
+            $mailchimp_email = $email->email;
+          }
         }
       }
     }
-    dpm($mailchimp_email);
     return $mailchimp_email;
   }
 

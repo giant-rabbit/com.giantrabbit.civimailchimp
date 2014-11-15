@@ -69,7 +69,7 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
       $interest_groups_lookup = CRM_CiviMailchimp_Utils::formatInterestGroupsLookup($mailchimp_lists);
       $interest_groups_options = '';
       if ($group_id) {
-        $civimailchimp_group = CRM_CiviMailchimp_BAO_Group::findByGroupId($group_id);
+        $civimailchimp_group = CRM_CiviMailchimp_BAO_Group::getSyncSettingsByGroupId($group_id);
         if ($civimailchimp_group) {
           if (isset($interest_groups_lookup[$civimailchimp_group->mailchimp_list_id])) { 
             $interest_groups_options = $interest_groups_lookup[$civimailchimp_group->mailchimp_list_id];

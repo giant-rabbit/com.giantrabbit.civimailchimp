@@ -20,7 +20,7 @@ class CRM_CiviMailchimp_BAO_Group extends CRM_CiviMailchimp_DAO_Group {
   static function updateSettings($params) {
     $transaction = new CRM_Core_Transaction();
     try {
-      $existing_group = self::findByGroupId($params['civicrm_group_id']);
+      $existing_group = self::getSyncSettingsByGroupId($params['civicrm_group_id']);
       if ($existing_group) {
         $params['id'] = $existing_group->id;
       }
@@ -40,7 +40,7 @@ class CRM_CiviMailchimp_BAO_Group extends CRM_CiviMailchimp_DAO_Group {
   static function deleteSettings($params) {
     $transaction = new CRM_Core_Transaction();
     try {
-      $civimailchimp_group = self::findByGroupId($params['civicrm_group_id']);
+      $civimailchimp_group = self::getSyncSettingsByGroupId($params['civicrm_group_id']);
       $civimailchimp_group->delete();
     } catch (Exception $e) {
       $transaction->rollback();

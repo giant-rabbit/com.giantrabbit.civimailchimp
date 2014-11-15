@@ -159,7 +159,7 @@ class Mailchimp {
             curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, true);    
         }
 
-        curl_setopt($this->ch, CURLOPT_USERAGENT, 'MailChimp-PHP/2.0.5');
+        curl_setopt($this->ch, CURLOPT_USERAGENT, 'MailChimp-PHP/2.0.6');
         curl_setopt($this->ch, CURLOPT_POST, true);
         curl_setopt($this->ch, CURLOPT_HEADER, false);
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
@@ -184,7 +184,9 @@ class Mailchimp {
     }
 
     public function __destruct() {
-        curl_close($this->ch);
+        if(is_resource($this->ch)) {
+            curl_close($this->ch);
+        }
     }
 
     public function call($url, $params) {

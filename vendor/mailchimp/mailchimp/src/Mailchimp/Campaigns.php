@@ -54,7 +54,7 @@ class Mailchimp_Campaigns {
      *     - fb_comments boolean optional If true, the Facebook comments (and thus the <a href="http://kb.mailchimp.com/article/i-dont-want-an-archiave-of-my-campaign-can-i-turn-it-off/" target="_blank">archive bar</a> will be displayed. If false, Facebook comments will not be enabled (does not imply no archive bar, see previous link). Defaults to "true".
      *     - timewarp boolean optional If set, this campaign must be scheduled 24 hours in advance of sending - default to false. Only valid for "regular" campaigns and "absplit" campaigns that split on schedule_time.
      *     - ecomm360 boolean optional If set, our <a href="http://www.mailchimp.com/blog/ecommerce-tracking-plugin/" target="_blank">Ecommerce360 tracking</a> will be enabled for links in the campaign
-     *     - crm_tracking array optional If set, an array of structs to enable CRM tracking for:
+     *     - crm_tracking associative_array optional If set, a struct to enable CRM tracking for:
      *         - salesforce associative_array optional Enable SalesForce push back
      *             - campaign bool optional - if true, create a Campaign object and update it with aggregate stats
      *             - notes bool optional - if true, attempt to update Contact notes based on email address
@@ -204,6 +204,11 @@ class Mailchimp_Campaigns {
      *         - comments_total int total number of comments left on this campaign
      *         - comments_unread int total number of unread comments for this campaign based on the login the apikey belongs to
      *         - summary associative_array if available, the basic aggregate stats returned by reports/summary
+     *         - social_card associative_array If a social card has been attached to this campaign:
+     *             - title string The title of the campaign used with the card
+     *             - description string The description used with the card
+     *             - image_url string The URL of the image used with the card
+     *             - enabled string Whether or not the social card is enabled for this campaign.
      *     - errors array structs of any errors found while loading lists - usually just from providing invalid list ids
      *         - filter string the filter that caused the failure
      *         - value string the filter value that caused the failure

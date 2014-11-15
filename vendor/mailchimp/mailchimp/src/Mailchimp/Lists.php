@@ -631,10 +631,11 @@ in order to be included - this <strong>will not</strong> subscribe them to the l
      * @param int $seg_id
      * @param array $batch
      *     - email string an email address
-     *     - euid string the unique id for an email address (not list related) - the email "id" returned from listMemberInfo, Webhooks, Campaigns, etc.
+     *     - euid string the unique id for an email address (not list related) - the email "id" returned from lists/member-info(), Webhooks, Campaigns, etc.
      *     - leid string the list email id (previously called web_id) for a list-member-info type call. this doesn't change when the email address changes
      * @return associative_array an array with the results of the operation
      *     - success_count int the total number of successful updates (will include members already in the segment)
+     *     - error_count int the total number of errors
      *     - errors array structs for each error including:
      *         - email string whatever was passed in the email parameter
      *             - email string the email address added
@@ -769,7 +770,7 @@ consider using lists/batch-subscribe() with the update_existing and possible rep
      *     - email string an email address
      *     - euid string the unique id for an email address (not list related) - the email "id" returned from listMemberInfo, Webhooks, Campaigns, etc.
      *     - leid string the list email id (previously called web_id) for a list-member-info type call. this doesn't change when the email address changes
-     * @param array $merge_vars
+     * @param associative_array $merge_vars
      * @param string $email_type
      * @param boolean $replace_interests
      * @return associative_array the ids for this subscriber
@@ -849,7 +850,7 @@ consider using lists/batch-subscribe() with the update_existing and possible rep
      *     - from_subject string optional - only lists that have a default from email matching this
      *     - created_before string optional - only show lists that were created before this date+time  - 24 hour format in <strong>GMT</strong>, eg "2013-12-30 20:30:00"
      *     - created_after string optional - only show lists that were created since this date+time  - 24 hour format in <strong>GMT</strong>, eg "2013-12-30 20:30:00"
-     *     - exact boolean optional - flag for whether to filter on exact values when filtering, or search within content for filter values - defaults to true
+     *     - exact boolean optional - flag for whether to filter on exact values when filtering, or search within content for filter values - defaults to false
      * @param int $start
      * @param int $limit
      * @param string $sort_field

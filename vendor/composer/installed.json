@@ -1,17 +1,17 @@
 [
     {
         "name": "mailchimp/mailchimp",
-        "version": "2.0.5",
-        "version_normalized": "2.0.5.0",
+        "version": "2.0.6",
+        "version_normalized": "2.0.6.0",
         "source": {
             "type": "git",
             "url": "https://bitbucket.org/mailchimp/mailchimp-api-php.git",
-            "reference": "a884ee03dd282deddfc471257b01fd09e5cd06dc"
+            "reference": "7ac99b5ac746d5875c5c350ad7e3b83674c83ec1"
         },
         "dist": {
             "type": "zip",
-            "url": "https://bitbucket.org/mailchimp/mailchimp-api-php/get/a884ee03dd282deddfc471257b01fd09e5cd06dc.zip",
-            "reference": "a884ee03dd282deddfc471257b01fd09e5cd06dc",
+            "url": "https://bitbucket.org/mailchimp/mailchimp-api-php/get/7ac99b5ac746d5875c5c350ad7e3b83674c83ec1.zip",
+            "reference": "7ac99b5ac746d5875c5c350ad7e3b83674c83ec1",
             "shasum": ""
         },
         "require": {
@@ -20,7 +20,7 @@
         "require-dev": {
             "apigen/apigen": "dev-master"
         },
-        "time": "2014-06-09 21:40:35",
+        "time": "2014-10-30 20:38:12",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

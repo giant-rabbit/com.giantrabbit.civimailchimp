@@ -17,7 +17,7 @@ class Mailchimp_Conversations {
      *     - data array An array of structs representing individual conversations
      *         - unique_id string A string identifying this particular conversation
      *         - message_count int The total number of messages in this conversation
-     *         - campaign_id string The unique identifier of the campaign this conversation is associated with
+     *         - campaign_id string The unique identifier of the campaign this conversation is associated with (will be null if the campaign has been deleted)
      *         - list_id string The unique identifier of the list this conversation is associated with
      *         - unread_messages int The number of messages in this conversation which have not yet been read.
      *         - from_label string A label representing the sender of this message.
@@ -59,7 +59,7 @@ class Mailchimp_Conversations {
     }
 
     /**
-     * Retrieve conversation messages
+     * Reply to a conversation
      * @param string $conversation_id
      * @param string $message
      * @return associative_array Message data from the created message

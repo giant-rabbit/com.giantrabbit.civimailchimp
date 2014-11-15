@@ -421,7 +421,7 @@ or campaignEmailStatsAIMAll() and generate any additional stats they require.
      *         - unique_opens int the unique opens for this timezone
      *         - clicks int the total clicks for this timezone
      *         - last_click string the date/time of the last click for this timezone
-     *         - unique_opens int the unique clicks for this timezone
+     *         - unique_clicks int the unique clicks for this timezone
      *         - bounces int the total bounces for this timezone
      *         - total int the total number of members sent to in this timezone
      *         - sent int the total number of members delivered to in this timezone

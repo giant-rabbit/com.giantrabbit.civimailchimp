@@ -10,8 +10,18 @@ class CRM_CiviMailchimp_Utils {
    */
   static function getApiObject() {
     $api_key = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_api_key');
+    // Allow the Mailchimp class to use to be overridden, which helps for
+    // automated tests.
+    $mailchimp_class = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_api_class');
+    if (!$mailchimp_class) {
+      $mailchimp_class = 'CRM_CiviMailchimp';
+    }
     $options = array('timeout' => 60);
-    $mailchimp = new Mailchimp($api_key, $options);
+    $config = CRM_Core_Config::singleton();
+    if ($config->debug) {
+      $options['debug'] = TRUE;
+    }
+    $mailchimp = new $mailchimp_class($api_key, $options);
     return $mailchimp;
   }
 

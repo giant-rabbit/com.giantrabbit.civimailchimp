@@ -182,4 +182,27 @@ class CRM_CiviMailchimp_Utils {
     }
     return $group;
   }
+
+  /**
+   * Add a Mailchimp Webhook for the specified list.
+   */
+  static function addWebhookToMailchimpList($list_id) {
+    $base_url = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_webhook_base_url');
+    if (!$base_url) {
+      $base_url = CIVICRM_UF_BASEURL;
+    }
+    $base_url = CRM_Utils_File::addTrailingSlash($base_url);
+    $site_key = CIVICRM_SITE_KEY;
+    $webhook_url = "{$base_url}civicrm/mailchimp/webhook?key={$site_key}";
+    $mailchimp = self::getApiObject();
+    $result = $mailchimp->lists->webhookAdd($list_id, $webhook_url);
+    return $result;
+  }
+
+  /**
+   * Delete a Mailchimp Webhook from the specified list.
+   */
+  static function deleteWebhookFromMailchimpList($list_id) {
+
+  }
 }

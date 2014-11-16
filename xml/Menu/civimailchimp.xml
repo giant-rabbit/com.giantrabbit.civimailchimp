@@ -12,4 +12,10 @@
     <title>CiviMailchimp Sync</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/mailchimp/webhook</path>
+    <page_callback>CRM_CiviMailchimp_Page_Webhook</page_callback>
+    <title>Webhook</title>
+    <access_arguments>*always allow*</access_arguments>
+  </item>
 </menu>

@@ -32,7 +32,6 @@ function civimailchimp_civicrm_contact_updated($old_contact, $new_contact) {
       if (!$contact_mailchimp_merge_fields_changed) {
         foreach ($merge_fields as $merge_field => $civicrm_field) {
           if (!isset($civicrm_fields_already_checked[$civicrm_field]) && $old_contact->$civicrm_field !== $new_contact->$civicrm_field) {
-            //dpm("{$mailchimp_sync_setting->mailchimp_list_id} {$merge_field}");
             $contact_mailchimp_merge_fields_changed = TRUE;
             continue;
           }
@@ -124,9 +123,12 @@ function civimailchimp_civicrm_postProcess($formName, &$form) {
         }
         $params['mailchimp_interest_group_id'] = $mailchimp_interest_groups;
         CRM_CiviMailchimp_BAO_Group::updateSettings($params);
+        CRM_CiviMailchimp_Utils::addWebhookToMailchimpList($params['mailchimp_list_id']);
       }
       else {
         CRM_CiviMailchimp_BAO_Group::deleteSettings($params);
+        CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList($params['mailchimp_list_id']);
+        // Also need to do this when deleting a group...
       }
     }
   }
@@ -354,6 +356,18 @@ function civimailchimp_civicrm_managed(&$entities) {
  */
 function civimailchimp_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _civimailchimp_civix_civicrm_alterSettingsFolders($metaDataFolders);
+}
+
+/**
+ * Implementation of hook_civicrm_permission
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_permission
+ */
+function civimailchimp_civicrm_permission(&$permissions) {
+  $prefix = ts('CiviMailchimp') . ': ';
+  $permissions = array(
+    'allow webhook posts' => $prefix . ts('allow webhook posts'),
+  );
 }
 
 /**

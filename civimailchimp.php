@@ -68,7 +68,7 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
       $interest_groups_lookup = CRM_CiviMailchimp_Utils::formatInterestGroupsLookup($mailchimp_lists);
       $interest_groups_options = '';
       if ($group_id) {
-        $civimailchimp_group = CRM_CiviMailchimp_BAO_Group::getSyncSettingsByGroupId($group_id);
+        $civimailchimp_group = CRM_CiviMailchimp_BAO_Group::getMailchimpSyncSettingsByGroupId($group_id);
         if ($civimailchimp_group) {
           if (isset($interest_groups_lookup[$civimailchimp_group->mailchimp_list_id])) { 
             $interest_groups_options = $interest_groups_lookup[$civimailchimp_group->mailchimp_list_id];
@@ -101,6 +101,21 @@ function civimailchimp_civicrm_setDefaults(&$form, $civimailchimp_group) {
 }
 
 /**
+ * Implementation of hook_civicrm_validateForm
+ */
+function civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
+  if ($formName === "CRM_Group_Form_Edit") {
+    if (!empty($fields['mailchimp_list'])) {
+      $site_key = defined('CIVICRM_SITE_KEY') ? CIVICRM_SITE_KEY : NULL;
+      if (!$site_key) {
+        $doc_link = CRM_Utils_System::docURL2("Managing Scheduled Jobs", TRUE, NULL, NULL, NULL, "wiki");
+        $errors['mailchimp_list'] = ts("A valid CiviCRM site key in civicrm.settings.php is required to configure a Group to sync with Mailchimp. More info on generating a site key at %1.", array(1 => $doc_link));
+      }
+    }
+  }
+}
+
+/**
  * Implementation of hook_civicrm_postProcess
  */
 function civimailchimp_civicrm_postProcess($formName, &$form) {
@@ -126,8 +141,8 @@ function civimailchimp_civicrm_postProcess($formName, &$form) {
         CRM_CiviMailchimp_Utils::addWebhookToMailchimpList($params['mailchimp_list_id']);
       }
       else {
-        CRM_CiviMailchimp_BAO_Group::deleteSettings($params);
-        CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList($params['mailchimp_list_id']);
+        $civimailchimp_group = CRM_CiviMailchimp_BAO_Group::deleteSettings($params);
+        CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList($civimailchimp_group->mailchimp_list_id);
         // Also need to do this when deleting a group...
       }
     }
@@ -356,18 +371,6 @@ function civimailchimp_civicrm_managed(&$entities) {
  */
 function civimailchimp_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
   _civimailchimp_civix_civicrm_alterSettingsFolders($metaDataFolders);
-}
-
-/**
- * Implementation of hook_civicrm_permission
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_permission
- */
-function civimailchimp_civicrm_permission(&$permissions) {
-  $prefix = ts('CiviMailchimp') . ': ';
-  $permissions = array(
-    'allow webhook posts' => $prefix . ts('allow webhook posts'),
-  );
 }
 
 /**

@@ -8,7 +8,7 @@ class CRM_CiviMailchimp_Utils {
    * Begin a connection with the Mailchimp API service and return the API
    * object.
    */
-  static function getApiObject() {
+  static function initiateMailchimpApiCall() {
     $api_key = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_api_key');
     // Allow the Mailchimp class to use to be overridden, which helps for
     // automated tests.
@@ -31,7 +31,7 @@ class CRM_CiviMailchimp_Utils {
    */
   static function getLists($list_ids = array()) {
     $lists = array();
-    $mailchimp = self::getApiObject();
+    $mailchimp = self::initiateMailchimpApiCall();
     $result = $mailchimp->lists->getList(array(), 0, 100);
     if ($result['total'] > 0) {
       foreach ($result['data'] as $list) {
@@ -187,14 +187,8 @@ class CRM_CiviMailchimp_Utils {
    * Add a Mailchimp Webhook for the specified list.
    */
   static function addWebhookToMailchimpList($list_id) {
-    $base_url = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_webhook_base_url');
-    if (!$base_url) {
-      $base_url = CIVICRM_UF_BASEURL;
-    }
-    $base_url = CRM_Utils_File::addTrailingSlash($base_url);
-    $site_key = CIVICRM_SITE_KEY;
-    $webhook_url = "{$base_url}civicrm/mailchimp/webhook?key={$site_key}";
-    $mailchimp = self::getApiObject();
+    $webhook_url = self::formatMailchimpWebhookUrl();
+    $mailchimp = self::initiateMailchimpApiCall();
     $result = $mailchimp->lists->webhookAdd($list_id, $webhook_url);
     return $result;
   }
@@ -203,6 +197,34 @@ class CRM_CiviMailchimp_Utils {
    * Delete a Mailchimp Webhook from the specified list.
    */
   static function deleteWebhookFromMailchimpList($list_id) {
+    $webhook_url = self::formatMailchimpWebhookUrl();
+    $mailchimp = self::initiateMailchimpApiCall();
+    $result = $mailchimp->lists->webhookDel($list_id, $webhook_url);
+    return $result;
+  }
 
+  /**
+   * Format Mailchimp Webhook url.
+   */
+  static function formatMailchimpWebhookUrl() {
+    $base_url = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_webhook_base_url');
+    if (!$base_url) {
+      $base_url = CIVICRM_UF_BASEURL;
+    }
+    $base_url = CRM_Utils_File::addTrailingSlash($base_url);
+    $site_key = self::getSiteKey();
+    $webhook_url = "{$base_url}civicrm/mailchimp/webhook?key={$site_key}";
+    return $webhook_url;
+  }
+
+  /**
+   * Get CIVICRM_SITE_KEY and throw exception if it is not set.
+   */
+  static function getSiteKey() {
+    $site_key = defined('CIVICRM_SITE_KEY') ? CIVICRM_SITE_KEY : NULL;
+    if (!$site_key) {
+      throw new Exception("You need to set a valid site key in civicrm.settings.php for Mailchimp to be able to communicate with CiviCRM using Mailchimp Webhooks.");
+    }
+    return $site_key;
   }
 }

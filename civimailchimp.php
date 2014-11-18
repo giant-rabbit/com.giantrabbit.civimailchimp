@@ -4,21 +4,21 @@ require_once 'civimailchimp.civix.php';
 require_once 'vendor/autoload.php';
 
 function civimailchimp_civicrm_contact_added_to_group($group, $contact) {
-  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_Group::getSyncSettingsByGroupId($group->id);
+  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::getSyncSettingsByGroupId($group->id);
   if ($mailchimp_sync_setting) {
     // queue subscribe.
   }
 }
 
 function civimailchimp_civicrm_contact_removed_from_group($group, $contact) {
-  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_Group::getSyncSettingsByGroupId($group->id);
+  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::getSyncSettingsByGroupId($group->id);
   if ($mailchimp_sync_setting) {
     // queue unsubscribe.
   }
 }
 
 function civimailchimp_civicrm_contact_updated($old_contact, $new_contact) {
-  $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_Group::getMailchimpSyncSettingsByContactId($new_contact->id);
+  $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::getMailchimpSyncSettingsByContactId($new_contact->id);
   if ($mailchimp_sync_settings) {
     $contact_mailchimp_merge_fields_changed = FALSE;
     $old_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($old_contact);
@@ -60,7 +60,7 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
     }
     catch (Exception $e) {
       $mailchimp_lists = NULL;
-      civimailchimp_catchMailchimpApiError($e);
+      civimailchimp_catch_mailchimp_api_error($e);
     }
     if ($mailchimp_lists) {
       $group_id = $form->getVar('_id');
@@ -68,12 +68,12 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
       $interest_groups_lookup = CRM_CiviMailchimp_Utils::formatInterestGroupsLookup($mailchimp_lists);
       $interest_groups_options = '';
       if ($group_id) {
-        $civimailchimp_group = CRM_CiviMailchimp_BAO_Group::getMailchimpSyncSettingsByGroupId($group_id);
-        if ($civimailchimp_group) {
-          if (isset($interest_groups_lookup[$civimailchimp_group->mailchimp_list_id])) { 
-            $interest_groups_options = $interest_groups_lookup[$civimailchimp_group->mailchimp_list_id];
+        $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($group_id);
+        if ($mailchimp_sync_settings) {
+          if (isset($interest_groups_lookup[$mailchimp_sync_settings->mailchimp_list_id])) { 
+            $interest_groups_options = $interest_groups_lookup[$mailchimp_sync_settings->mailchimp_list_id];
           }
-          civimailchimp_civicrm_setDefaults(&$form, $civimailchimp_group);
+          civimailchimp_civicrm_setDefaults(&$form, $mailchimp_sync_settings);
         }
       }
       $form->add('select', 'mailchimp_list', ts('Mailchimp List'), $list_options, FALSE, array('class' => 'crm-select2'));
@@ -88,13 +88,13 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
 /**
  * Sets default values for the Mailchimp sync settings for a group.
  */
-function civimailchimp_civicrm_setDefaults(&$form, $civimailchimp_group) {
+function civimailchimp_civicrm_setDefaults(&$form, $mailchimp_sync_settings) {
   $mailchimp_interest_groups = '';
-  if (!empty($civimailchimp_group->mailchimp_interest_group_id)) {
-    $mailchimp_interest_groups = implode(",", unserialize($civimailchimp_group->mailchimp_interest_group_id));
+  if (!empty($mailchimp_sync_settings->mailchimp_interest_group_id)) {
+    $mailchimp_interest_groups = implode(",", unserialize($mailchimp_sync_settings->mailchimp_interest_group_id));
   }
   $defaults = array(
-    'mailchimp_list' => $civimailchimp_group->mailchimp_list_id,
+    'mailchimp_list' => $mailchimp_sync_settings->mailchimp_list_id,
     'mailchimp_interest_groups' => $mailchimp_interest_groups,
   );
   $form->setDefaults($defaults);
@@ -137,13 +137,10 @@ function civimailchimp_civicrm_postProcess($formName, &$form) {
           $mailchimp_interest_groups = serialize($form->_submitValues['mailchimp_interest_groups']);
         }
         $params['mailchimp_interest_group_id'] = $mailchimp_interest_groups;
-        CRM_CiviMailchimp_BAO_Group::updateSettings($params);
-        CRM_CiviMailchimp_Utils::addWebhookToMailchimpList($params['mailchimp_list_id']);
+        CRM_CiviMailchimp_BAO_SyncSettings::saveSettings($params);
       }
       else {
-        $civimailchimp_group = CRM_CiviMailchimp_BAO_Group::deleteSettings($params);
-        CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList($civimailchimp_group->mailchimp_list_id);
-        // Also need to do this when deleting a group...
+        CRM_CiviMailchimp_BAO_SyncSettings::deleteSettings($params);
       }
     }
   }
@@ -152,7 +149,7 @@ function civimailchimp_civicrm_postProcess($formName, &$form) {
 /**
  * Catch a Mailchimp API error and add an entry to the CiviCRM log file.
  */
-function civimailchimp_catchMailchimpApiError($exception) {
+function civimailchimp_catch_mailchimp_api_error($exception) {
   // If the Mailchimp API call fails, we want to still allow admins to
   // create or edit a group.
   $error = array(
@@ -186,14 +183,6 @@ function civimailchimp_civicrm_pre_GroupContact_create($group_id, &$contact_ids)
 }
 
 /**
- * Implements hook_civicrm_pre for Individual and Organization edit.
- */
-function civimailchimp_civicrm_pre_Contact_edit($contact_id, &$contact) {
-  $old_contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
-  civimailchimp_static('old_contact', $old_contact);
-}
-
-/**
  * Implements hook_civicrm_post for GroupContact create.
  */
 function civimailchimp_civicrm_post_GroupContact_create($group_id, &$contact_ids) {
@@ -221,6 +210,14 @@ function civimailchimp_civicrm_post_GroupContact_delete($group_id, &$contact_ids
 }
 
 /**
+ * Implements hook_civicrm_pre for Individual and Organization edit.
+ */
+function civimailchimp_civicrm_pre_Contact_edit($contact_id, &$contact) {
+  $old_contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
+  civimailchimp_static('old_contact', $old_contact);
+}
+
+/**
  * Implements hook_civicrm_post for Individual and Organization edit.
  */
 function civimailchimp_civicrm_post_Contact_edit($contact_id, &$contact) {
@@ -237,6 +234,26 @@ function civimailchimp_civicrm_post_Contact_delete($contact_id, &$contact) {
   $contact_groups = CRM_Contact_BAO_Group::getGroups($params);
   foreach ($contact_groups as $group) {
     civimailchimp_civicrm_contact_removed_from_group($group, $contact);
+  }
+}
+
+/**
+ * Implements hook_civicrm_pre for Group delete.
+ */
+function civimailchimp_civicrm_pre_Group_delete($group_id, &$group) {
+  $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($group_id);
+  if ($mailchimp_sync_settings) {
+    civimailchimp_static('mailchimp_sync_settings', $mailchimp_sync_settings);
+  }
+}
+
+/**
+ * Implements hook_civicrm_post for Group delete.
+ */
+function civimailchimp_civicrm_post_Group_delete($group_id, &$group) {
+  $mailchimp_sync_settings = civimailchimp_static('mailchimp_sync_settings');
+  if ($mailchimp_sync_settings) {
+    CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList($mailchimp_sync_settings->mailchimp_list_id);
   }
 }
 
@@ -258,6 +275,7 @@ function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
  * Implementation of hook_civicrm_post
  */
 function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
+  dd("{$object_name} {$op}");
   if ($object_name === "Individual" || $object_name === "Organization") {
     $object_name = "Contact";
   }

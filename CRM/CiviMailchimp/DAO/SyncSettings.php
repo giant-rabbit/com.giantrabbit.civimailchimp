@@ -34,7 +34,7 @@
  */
 require_once 'CRM/Core/DAO.php';
 require_once 'CRM/Utils/Type.php';
-class CRM_CiviMailchimp_DAO_Group extends CRM_Core_DAO
+class CRM_CiviMailchimp_DAO_SyncSettings extends CRM_Core_DAO
 {
   /**
    * static instance to hold the table name
@@ -42,7 +42,7 @@ class CRM_CiviMailchimp_DAO_Group extends CRM_Core_DAO
    * @var string
    * @static
    */
-  static $_tableName = 'civimailchimp_group';
+  static $_tableName = 'civimailchimp_sync_settings';
   /**
    * static instance to hold the field values
    *
@@ -116,11 +116,11 @@ class CRM_CiviMailchimp_DAO_Group extends CRM_Core_DAO
    * class constructor
    *
    * @access public
-   * @return civimailchimp_group
+   * @return civimailchimp_sync_settings
    */
   function __construct()
   {
-    $this->__table = 'civimailchimp_group';
+    $this->__table = 'civimailchimp_sync_settings';
     parent::__construct();
   }
   /**

@@ -2,9 +2,9 @@
 
 <table>
   <base>CRM/CiviMailchimp</base>
-  <class>Group</class>
-  <name>civimailchimp_group</name>
-  <comment>Mailchimp settings for groups.</comment>
+  <class>SyncSettings</class>
+  <name>civimailchimp_sync_settings</name>
+  <comment>Mailchimp sync settings for CiviCRM groups.</comment>
   <add>4.2</add>
   <field>
     <name>id</name>

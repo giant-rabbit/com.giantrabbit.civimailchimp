@@ -15,6 +15,19 @@ class CRM_CiviMailchimp_BAO_SyncSettings extends CRM_CiviMailchimp_DAO_SyncSetti
   }
 
   /**
+   * Find Mailchimp sync settings by list ID.
+   */
+  static function findByListId($list_id) {
+    $mailchimp_sync_settings = new CRM_CiviMailchimp_BAO_SyncSettings();
+    $mailchimp_sync_settings->mailchimp_list_id = $list_id;
+    $mailchimp_sync_settings->find(TRUE);
+    if (empty($mailchimp_sync_settings->id)) {
+      return NULL;
+    }
+    return $mailchimp_sync_settings;
+  }
+
+  /**
    * Save Mailchimp sync settings.
    */
   static function saveSettings($params) {

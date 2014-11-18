@@ -18,7 +18,7 @@ function civimailchimp_civicrm_contact_removed_from_group($group, $contact) {
 }
 
 function civimailchimp_civicrm_contact_updated($old_contact, $new_contact) {
-  $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::getMailchimpSyncSettingsByContactId($new_contact->id);
+  $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByContactId($new_contact->id);
   if ($mailchimp_sync_settings) {
     $contact_mailchimp_merge_fields_changed = FALSE;
     $old_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($old_contact);

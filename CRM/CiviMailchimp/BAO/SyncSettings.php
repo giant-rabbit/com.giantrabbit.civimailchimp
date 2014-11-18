@@ -62,7 +62,7 @@ class CRM_CiviMailchimp_BAO_SyncSettings extends CRM_CiviMailchimp_DAO_SyncSetti
   /**
    * Get the Mailchimp sync settings for a contact's groups.
    */
-  static function getMailchimpSyncSettingsByContactId($contact_id) {
+  static function findByContactId($contact_id) {
     $query = "
       SELECT
         *

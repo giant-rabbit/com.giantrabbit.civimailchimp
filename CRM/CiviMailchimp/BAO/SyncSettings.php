@@ -80,16 +80,16 @@ class CRM_CiviMailchimp_BAO_SyncSettings extends CRM_CiviMailchimp_DAO_SyncSetti
       SELECT
         *
       FROM
-        mailchimp_sync_settings
+        civimailchimp_sync_settings
       JOIN
-        civicrm_group_contact ON (mailchimp_sync_settings.civicrm_group_id = civicrm_group_contact.group_id)
+        civicrm_group_contact ON (civimailchimp_sync_settings.civicrm_group_id = civicrm_group_contact.group_id)
       WHERE
         civicrm_group_contact.status = 'Added'
       AND
         civicrm_group_contact.contact_id = %1;
     ";
     $params = array(1 => array($contact_id, 'Integer'));
-    $result = CRM_Core_DAO::executeQuery($query, $params, TRUE, 'CRM_CiviMailchimp_DAO_Group');
+    $result = CRM_Core_DAO::executeQuery($query, $params, TRUE, 'CRM_CiviMailchimp_DAO_SyncSettings');
     $mailchimp_sync_settings = array();
     while ($result->fetch()) {
       $mailchimp_sync_setting = clone $result;

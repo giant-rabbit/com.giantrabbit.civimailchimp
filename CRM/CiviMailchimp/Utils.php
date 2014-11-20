@@ -75,9 +75,10 @@ class CRM_CiviMailchimp_Utils {
     $interest_groups_lookup = array();
     foreach ($mailchimp_lists as $mailchimp_list) {
       if (isset($mailchimp_list['interest_groups'])) {
-        foreach ($mailchimp_list['interest_groups'] as $interest_group_container) {
-          foreach ($interest_group_container['groups'] as $interest_group) {
-            $interest_groups_lookup[$mailchimp_list['id']][$interest_group['id']] = $interest_group['name'];
+        foreach ($mailchimp_list['interest_groups'] as $interest_grouping) {
+          foreach ($interest_grouping['groups'] as $interest_group) {
+            $interest_group_id = "{$interest_grouping['id']}_{$interest_group['id']}";
+            $interest_groups_lookup[$mailchimp_list['id']][$interest_group_id] = $interest_group['name'];
           }
         }
       }
@@ -89,7 +90,7 @@ class CRM_CiviMailchimp_Utils {
    * Get the merge fields configured for a particular list. If the merge fields
    * for a list are not specified, return the default merge fields.
    */
-  static function mailchimpMergeFields($list_id = NULL) {
+  static function getMailchimpMergeFields($list_id = NULL) {
     $merge_fields = array(
       'FNAME' => 'first_name',
       'LNAME' => 'last_name',
@@ -101,6 +102,26 @@ class CRM_CiviMailchimp_Utils {
       }
     }
     return $merge_fields;
+  }
+
+  static function formatMailchimpMergeVars($merge_fields, $contact, $mailchimp_sync_setting, $updated_mailchimp_email = NULL) {
+    $merge_vars = array();
+    foreach ($merge_fields as $merge_field => $civicrm_field) {
+      $merge_vars[$merge_field] = $contact->$civicrm_field;
+    }
+    if ($updated_mailchimp_email) {
+      $merge_vars['new-email'] = $updated_mailchimp_email;
+    }
+    if ($mailchimp_sync_setting->mailchimp_interest_groups) {
+      $groupings_merge_var = array();
+      foreach ($mailchimp_sync_setting->mailchimp_interest_groups as $interest_grouping => $interest_groups) {
+        $groupings_merge_var[] = array(
+          'id' => $interest_grouping,
+          'groups' => $interest_groups,
+        );
+      }
+      $merge_vars['groupings'] = $groupings_merge_var;
+    }
   }
 
   /**
@@ -226,5 +247,32 @@ class CRM_CiviMailchimp_Utils {
       throw new Exception("You need to set a valid site key in civicrm.settings.php for Mailchimp to be able to communicate with CiviCRM using Mailchimp Webhooks.");
     }
     return $site_key;
+  }
+
+  /**
+   * Add a mailchimp sync item to the queue.
+   */
+  static function addMailchimpSyncQueueItem($action, $mailchimp_list_id, $email, $merge_vars) {
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => FALSE,
+    ));
+    $queue->createItem(new CRM_Queue_Task(
+      array('CRM_CiviMailchimp_Utils', $action),
+      array($mailchimp_list_id, $email, $merge_vars)
+    ));
+  }
+
+  static function subscribeContactToMailchimpList(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email, $merge_vars) {
+
+  }
+
+  static function unsubscribeContactFromMailchimpList(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email) {
+
+  }
+
+  static function updateContactProfileInMailchimp(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email, $merge_vars) {
+
   }
 }

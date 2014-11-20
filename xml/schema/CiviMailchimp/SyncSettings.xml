@@ -38,12 +38,4 @@
     <comment>Mailchimp List ID</comment>
     <add>4.2</add>
   </field>
-  <field>
-    <name>mailchimp_interest_group_id</name>
-    <type>varchar</type>
-    <length>255</length>
-    <required>false</required>
-    <comment>Mailchimp List Interest Group ID</comment>
-    <add>4.2</add>
-  </field>
 </table>

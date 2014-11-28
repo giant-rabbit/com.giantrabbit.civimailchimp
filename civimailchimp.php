@@ -4,20 +4,20 @@ require_once 'civimailchimp.civix.php';
 require_once 'vendor/autoload.php';
 
 function civimailchimp_civicrm_contact_added_to_group($group, $contact) {
-  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::getSyncSettingsByGroupId($group->id);
+  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($group->id);
   if ($mailchimp_sync_setting) {
-    $mailchimp_list_id = $mailchimp_sync_setting->mailchinp_list_id;
     $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
-    $email = array('email' => $mailchimp_email);
-    $merge_vars = array();
-    //CRM_CiviMailchimp_Utils::addMailchimpSyncQueueItem('subscribeContactToMailchimpList', $mailchimp_list_id, $email, $merge_vars);
+    $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields($mailchimp_sync_setting->mailchimp_list_id);
+    $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact, $mailchimp_sync_setting); 
+    CRM_CiviMailchimp_Utils::addMailchimpSyncQueueItem('subscribeContactToMailchimpList', $mailchimp_sync_setting->mailchimp_list_id, $mailchimp_email, $merge_vars);
   }
 }
 
 function civimailchimp_civicrm_contact_removed_from_group($group, $contact) {
-  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::getSyncSettingsByGroupId($group->id);
+  $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($group->id);
   if ($mailchimp_sync_setting) {
-    // queue unsubscribe.
+    $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
+    CRM_CiviMailchimp_Utils::addMailchimpSyncQueueItem('unsubscribeContactFromMailchimpList', $mailchimp_sync_setting->mailchimp_list_id, $mailchimp_email);
   }
 }
 
@@ -46,7 +46,7 @@ function civimailchimp_civicrm_contact_updated($old_contact, $new_contact) {
       }
       if ($contact_mailchimp_merge_fields_changed) {
         $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $new_contact, $mailchimp_sync_setting, $updated_mailchimp_email);
-        // queue profile update.
+        CRM_CiviMailchimp_Utils::addMailchimpSyncQueueItem('updateContactProfileInMailchimp', $mailchimp_sync_setting->mailchimp_list_id, $old_contact_email, $merge_vars);
       }
     }
   }
@@ -198,13 +198,12 @@ function civimailchimp_civicrm_pre_GroupContact_create($group_id, &$contact_ids)
  */
 function civimailchimp_civicrm_post_GroupContact_create($group_id, &$contact_ids) {
   $groups_contact_added_to = civimailchimp_static('groups_contact_added_to');
-  if ($groups_contact_added_to) {
-    foreach ($groups_contact_added_to as $group_id => $contact_ids) {
-      $group = CRM_CiviMailchimp_Utils::getGroupById($group_id);
-      foreach ($contact_ids as $contact_id) {
-        $contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
-        civimailchimp_civicrm_contact_added_to_group($group, $contact);
-      }
+  if (array_key_exists($group_id, $groups_contact_added_to)) {
+    $group = CRM_CiviMailchimp_Utils::getGroupById($group_id);
+    $contact_ids_added_to_group = $groups_contact_added_to[$group_id];
+    foreach ($contact_ids_added_to_group as $contact_id) {
+      $contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
+      civimailchimp_civicrm_contact_added_to_group($group, $contact);
     }
   }
 }

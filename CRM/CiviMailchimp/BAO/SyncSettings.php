@@ -38,7 +38,9 @@ class CRM_CiviMailchimp_BAO_SyncSettings extends CRM_CiviMailchimp_DAO_SyncSetti
   static function findByContactId($contact_id) {
     $query = "
       SELECT
-        *
+        civimailchimp_sync_settings.id,
+        civimailchimp_sync_settings.civicrm_group_id,
+        civimailchimp_sync_settings.mailchimp_list_id
       FROM
         civimailchimp_sync_settings
       JOIN
@@ -54,7 +56,7 @@ class CRM_CiviMailchimp_BAO_SyncSettings extends CRM_CiviMailchimp_DAO_SyncSetti
     while ($result->fetch()) {
       $mailchimp_sync_setting = clone $result;
       $mailchimp_sync_setting->mailchimp_interest_groups = CRM_CiviMailchimp_BAO_InterestGroupsSyncSettings::findBySyncSettingsId($mailchimp_sync_setting->id);
-      $mailchimp_sync_settings[$mailchimp_sync_setting->group_id] = $mailchimp_sync_setting;
+      $mailchimp_sync_settings[$mailchimp_sync_setting->civicrm_group_id] = $mailchimp_sync_setting;
     }
     return $mailchimp_sync_settings;
   }

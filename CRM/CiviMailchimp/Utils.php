@@ -122,6 +122,7 @@ class CRM_CiviMailchimp_Utils {
       }
       $merge_vars['groupings'] = $groupings_merge_var;
     }
+    return $merge_vars;
   }
 
   /**
@@ -252,7 +253,7 @@ class CRM_CiviMailchimp_Utils {
   /**
    * Add a mailchimp sync item to the queue.
    */
-  static function addMailchimpSyncQueueItem($action, $mailchimp_list_id, $email, $merge_vars) {
+  static function addMailchimpSyncQueueItem($action, $mailchimp_list_id, $email, $merge_vars = array()) {
     $queue = CRM_Queue_Service::singleton()->create(array(
       'type' => 'Sql',
       'name' => 'mailchimp-sync',

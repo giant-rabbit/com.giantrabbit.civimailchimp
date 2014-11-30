@@ -184,12 +184,12 @@ function civimailchimp_civicrm_pre_GroupContact_create($group_id, &$contact_ids)
   // not. We're storing the actually added Groups in a static variable for
   // use in the civicrm_post hook.
   foreach ($contact_ids as $contact_id) {
+    $contacts_added_to_group = array();
     $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($group_id, $contact_id);
     if ($contact_added_to_group) {
-      $groups_contact_added_to = civimailchimp_static('groups_contact_added_to');
-      $groups_contact_added_to[$group_id][] = $contact_id;
-      civimailchimp_static('groups_contact_added_to', $groups_contact_added_to);
+      $contacts_added_to_group[] = $contact_id;
     }
+    civimailchimp_static('contacts_added_to_group', $contacts_added_to_group);
   }
 }
 
@@ -197,11 +197,10 @@ function civimailchimp_civicrm_pre_GroupContact_create($group_id, &$contact_ids)
  * Implements hook_civicrm_post for GroupContact create.
  */
 function civimailchimp_civicrm_post_GroupContact_create($group_id, &$contact_ids) {
-  $groups_contact_added_to = civimailchimp_static('groups_contact_added_to');
-  if (array_key_exists($group_id, $groups_contact_added_to)) {
+  $contacts_added_to_group = civimailchimp_static('contacts_added_to_group');
+  if ($contacts_added_to_group) {
     $group = CRM_CiviMailchimp_Utils::getGroupById($group_id);
-    $contact_ids_added_to_group = $groups_contact_added_to[$group_id];
-    foreach ($contact_ids_added_to_group as $contact_id) {
+    foreach ($contacts_added_to_group as $contact_id) {
       $contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
       civimailchimp_civicrm_contact_added_to_group($group, $contact);
     }
@@ -285,7 +284,6 @@ function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
  * Implementation of hook_civicrm_post
  */
 function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
-  dd("{$object_name} {$op}");
   if ($object_name === "Individual" || $object_name === "Organization") {
     $object_name = "Contact";
   }
@@ -301,7 +299,7 @@ function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
  */
 function civimailchimp_static($name, $new_value = NULL) {
   static $data = NULL;
-  if ($new_value != NULL) {
+  if ($new_value !== NULL) {
     $data[$name] = $new_value;
   }
   if (isset($data[$name])) {

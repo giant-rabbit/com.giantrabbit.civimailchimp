@@ -130,7 +130,7 @@ class CRM_CiviMailchimp_Utils {
    */
   static function determineMailchimpEmailForContact($contact) {
     $mailchimp_email = NULL;
-    if (!$contact->do_not_email && !$contact->is_opt_out) {
+    if (!$contact->do_not_email && !$contact->is_opt_out && isset($contact->email)) {
       foreach ($contact->email as $email) {
         // We have to explicitly check for 'null' as the $contact object
         // included in hook_civicrm_post has 'null' in a bunch of places where

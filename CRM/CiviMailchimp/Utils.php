@@ -266,14 +266,20 @@ class CRM_CiviMailchimp_Utils {
   }
 
   static function subscribeContactToMailchimpList(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email, $merge_vars) {
-
+    $email = array('email' => $email);
+    $mailchimp = self::initiateMailchimpApiCall();
+    $mailchimp->lists->subscribe($mailchimp_list_id, $email, $merge_vars);
   }
 
   static function unsubscribeContactFromMailchimpList(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email) {
-
+    $email = array('email' => $email);
+    $mailchimp = self::initiateMailchimpApiCall();
+    $mailchimp->lists->unsubscribe($mailchimp_list_id, $email);
   }
 
   static function updateContactProfileInMailchimp(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email, $merge_vars) {
-
+    $email = array('email' => $email);
+    $mailchimp = self::initiateMailchimpApiCall();
+    $mailchimp->lists->updateMember($mailchimp_list_id, $email, $merge_vars);
   }
 }

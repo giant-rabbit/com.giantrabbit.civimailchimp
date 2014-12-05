@@ -76,12 +76,22 @@ class CRM_CiviMailchimp_BAO_SyncSettings extends CRM_CiviMailchimp_DAO_SyncSetti
       $mailchimp_sync_setting->copyValues($params);
       $mailchimp_sync_setting->save();
       if (isset($params['mailchimp_interest_groups'])) {
+        // Get the interest groups from Mailchimp again so we can associate a
+        // name with the interest group id.
+        $mailchimp_interest_groups = CRM_CiviMailchimp_Utils::getInterestGroups($params['mailchimp_list_id']);
         foreach ($params['mailchimp_interest_groups'] as $mailchimp_interest_group) {
           $mailchimp_interest_group = explode('_', $mailchimp_interest_group);
+          $mailchimp_interest_grouping_id = $mailchimp_interest_group[0];
+          $mailchimp_interest_group_id = $mailchimp_interest_group[1];
+          // Mailchimp expects the interest group name rather than id when
+          // making API subscription requests. However, since the name can be
+          // changed and is not unique, we're storing both the id and name.
+          $mailchimp_interest_group_name = $mailchimp_interest_groups[$mailchimp_interest_grouping_id][$mailchimp_interest_group_id];
           $mailchimp_interest_group_sync_setting = new CRM_CiviMailchimp_BAO_InterestGroupsSyncSettings();
           $mailchimp_interest_group_sync_setting->civimailchimp_sync_settings_id = $mailchimp_sync_setting->id;
-          $mailchimp_interest_group_sync_setting->mailchimp_interest_grouping_id = $mailchimp_interest_group[0];
-          $mailchimp_interest_group_sync_setting->mailchimp_interest_group_id = $mailchimp_interest_group[1];
+          $mailchimp_interest_group_sync_setting->mailchimp_interest_grouping_id = $mailchimp_interest_grouping_id;
+          $mailchimp_interest_group_sync_setting->mailchimp_interest_group_id = $mailchimp_interest_group_id;
+          $mailchimp_interest_group_sync_setting->mailchimp_interest_group_name = $mailchimp_interest_group_name;
           $mailchimp_interest_group_sync_setting->save();
         }
       }

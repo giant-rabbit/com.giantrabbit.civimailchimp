@@ -21,6 +21,7 @@ CREATE TABLE `civimailchimp_interest_groups_sync_settings` (
   `civimailchimp_sync_settings_id` int unsigned NOT NULL COMMENT 'CiviCRM Sync Settings ID',
   `mailchimp_interest_grouping_id` varchar(255) NOT NULL COMMENT 'Mailchimp Interest Grouping ID',
   `mailchimp_interest_group_id` varchar(255) DEFAULT NULL COMMENT 'Mailchimp Interest Group ID',
+  `mailchimp_interest_group_name` varchar(255) DEFAULT NULL COMMENT 'Mailchimp Interest Group Name',
   PRIMARY KEY (`id`),
   CONSTRAINT FK_civimailchimp_interest_groups_sync_settings_id FOREIGN KEY (`civimailchimp_sync_settings_id`) REFERENCES `civimailchimp_sync_settings`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;

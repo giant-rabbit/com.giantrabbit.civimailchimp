@@ -36,7 +36,7 @@ class CRM_CiviMailchimp_Utils {
     if ($result['total'] > 0) {
       foreach ($result['data'] as $list) {
         if ($list['stats']['group_count']) {
-          $list['interest_groups'] = $mailchimp->lists->interestGroupings($list['id']);
+          $list['interest_groups'] = self::getInterestGroups($list['id']);
         }
         $lists[$list['id']] = $list;
       }
@@ -53,6 +53,23 @@ class CRM_CiviMailchimp_Utils {
     else {
       return $lists;
     }
+  }
+
+  /**
+   * Get all interest groups for a specified Mailchimp list.
+   */
+  static function getInterestGroups($list_id) {
+    $interest_groups = array();
+    $mailchimp = self::initiateMailchimpApiCall();
+    $mailchimp_interest_groups = $mailchimp->lists->interestGroupings($list_id);
+    if ($mailchimp_interest_groups) {
+      foreach ($mailchimp_interest_groups as $mailchimp_interest_grouping) {
+        foreach ($mailchimp_interest_grouping['groups'] as $mailchimp_interest_group) {
+          $interest_groups[$mailchimp_interest_grouping['id']][$mailchimp_interest_group['id']] = $mailchimp_interest_group['name'];
+        }
+      }
+    }
+    return $interest_groups;
   }
 
   /**
@@ -75,10 +92,10 @@ class CRM_CiviMailchimp_Utils {
     $interest_groups_lookup = array();
     foreach ($mailchimp_lists as $mailchimp_list) {
       if (isset($mailchimp_list['interest_groups'])) {
-        foreach ($mailchimp_list['interest_groups'] as $interest_grouping) {
-          foreach ($interest_grouping['groups'] as $interest_group) {
-            $interest_group_id = "{$interest_grouping['id']}_{$interest_group['id']}";
-            $interest_groups_lookup[$mailchimp_list['id']][$interest_group_id] = $interest_group['name'];
+        foreach ($mailchimp_list['interest_groups'] as $interest_grouping => $interest_groups) {
+          foreach ($interest_groups as $interest_group_id => $interest_group_name) {
+            $interest_group_key = "{$interest_grouping}_{$interest_group_id}";
+            $interest_groups_lookup[$mailchimp_list['id']][$interest_group_key] = $interest_group_name;
           }
         }
       }
@@ -115,9 +132,13 @@ class CRM_CiviMailchimp_Utils {
     if ($mailchimp_sync_setting->mailchimp_interest_groups) {
       $groupings_merge_var = array();
       foreach ($mailchimp_sync_setting->mailchimp_interest_groups as $interest_grouping => $interest_groups) {
+        $groups = array();
+        foreach ($interest_groups as $interest_group) {
+          $groups[] = $interest_group->mailchimp_interest_group_name;
+        }
         $groupings_merge_var[] = array(
           'id' => $interest_grouping,
-          'groups' => $interest_groups,
+          'groups' => $groups,
         );
       }
       $merge_vars['groupings'] = $groupings_merge_var;

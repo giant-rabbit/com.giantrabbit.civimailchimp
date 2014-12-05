@@ -11,7 +11,8 @@ class CRM_CiviMailchimp_BAO_InterestGroupsSyncSettings extends CRM_CiviMailchimp
     $civimailchimp_interest_groups->find();
     $interest_groups = array();
     while ($civimailchimp_interest_groups->fetch()) {
-      $interest_groups[$civimailchimp_interest_groups->mailchimp_interest_grouping_id][] = $civimailchimp_interest_groups->mailchimp_interest_group_id;
+      $civimailchimp_interest_group = clone $civimailchimp_interest_groups;
+      $interest_groups[$civimailchimp_interest_group->mailchimp_interest_grouping_id][] = $civimailchimp_interest_group;
     }
     return $interest_groups;
   }

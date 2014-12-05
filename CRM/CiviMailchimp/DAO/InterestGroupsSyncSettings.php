@@ -113,6 +113,12 @@ class CRM_CiviMailchimp_DAO_InterestGroupsSyncSettings extends CRM_Core_DAO
    */
   public $mailchimp_interest_group_id;
   /**
+   * Mailchimp Interest Group Name
+   *
+   * @var string
+   */
+  public $mailchimp_interest_group_name;
+  /**
    * class constructor
    *
    * @access public
@@ -172,6 +178,13 @@ class CRM_CiviMailchimp_DAO_InterestGroupsSyncSettings extends CRM_Core_DAO
           'maxlength' => 255,
           'size' => CRM_Utils_Type::HUGE,
         ) ,
+        'mailchimp_interest_group_name' => array(
+          'name' => 'mailchimp_interest_group_name',
+          'type' => CRM_Utils_Type::T_STRING,
+          'required' => false,
+          'maxlength' => 255,
+          'size' => CRM_Utils_Type::HUGE,
+        ) ,
       );
     }
     return self::$_fields;
@@ -191,6 +204,7 @@ class CRM_CiviMailchimp_DAO_InterestGroupsSyncSettings extends CRM_Core_DAO
         'civimailchimp_sync_settings_id' => 'civimailchimp_sync_settings_id',
         'mailchimp_interest_grouping_id' => 'mailchimp_interest_grouping_id',
         'mailchimp_interest_group_id' => 'mailchimp_interest_group_id',
+        'mailchimp_interest_group_name' => 'mailchimp_interest_group_name',
       );
     }
     return self::$_fieldKeys;

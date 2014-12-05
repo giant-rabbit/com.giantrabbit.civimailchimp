@@ -129,30 +129,28 @@ function civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form
 }
 
 /**
- * Implementation of hook_civicrm_postProcess
+ * Implementation of hook_civicrm_postProcess for the Group Edit form.
  */
-function civimailchimp_civicrm_postProcess($formName, &$form) {
-  if ($formName === "CRM_Group_Form_Edit") {
-    // If the Mailchimp API call fails, the mailchimp_list field will not be
-    // added to the form, so we want to retain the existing Mailchimp List
-    // sync settings for the group, if the group is edited.
-    if (isset($form->_elementIndex['mailchimp_list'])) {
-      $params['civicrm_group_id'] = $form->getVar('_id');
-      // When creating a new group, the group ID is only accessible from the
-      // 'amtgID' session variable.
-      if (empty($params['civicrm_group_id'])) {
-        $params['civicrm_group_id'] = $form->get('amtgID');
+function civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit(&$form) {
+  // If the Mailchimp API call fails, the mailchimp_list field will not be
+  // added to the form, so we want to retain the existing Mailchimp List
+  // sync settings for the group, if the group is edited.
+  if (isset($form->_elementIndex['mailchimp_list'])) {
+    $params['civicrm_group_id'] = $form->getVar('_id');
+    // When creating a new group, the group ID is only accessible from the
+    // 'amtgID' session variable.
+    if (empty($params['civicrm_group_id'])) {
+      $params['civicrm_group_id'] = $form->get('amtgID');
+    }
+    if ($form->_submitValues['mailchimp_list']) {
+      $params['mailchimp_list_id'] = $form->_submitValues['mailchimp_list'];
+      if (isset($form->_submitValues['mailchimp_interest_groups'])) {
+        $params['mailchimp_interest_groups'] = $form->_submitValues['mailchimp_interest_groups'];
       }
-      if ($form->_submitValues['mailchimp_list']) {
-        $params['mailchimp_list_id'] = $form->_submitValues['mailchimp_list'];
-        if (isset($form->_submitValues['mailchimp_interest_groups'])) {
-          $params['mailchimp_interest_groups'] = $form->_submitValues['mailchimp_interest_groups'];
-        }
-        CRM_CiviMailchimp_BAO_SyncSettings::saveSettings($params);
-      }
-      else {
-        CRM_CiviMailchimp_BAO_SyncSettings::deleteSettings($params);
-      }
+      CRM_CiviMailchimp_BAO_SyncSettings::saveSettings($params);
+    }
+    else {
+      CRM_CiviMailchimp_BAO_SyncSettings::deleteSettings($params);
     }
   }
 }
@@ -219,6 +217,40 @@ function civimailchimp_civicrm_post_GroupContact_delete($group_id, &$contact_ids
 }
 
 /**
+ * Implements hook_civicrm_pre for Individual and Organization Email.
+ */
+function civimailchimp_civicrm_pre_Email_edit($email_id, &$email) {
+  // Set a static variable to track the old contact record to use for later
+  // comparison.
+  $old_email_contact = civimailchimp_static('old_email_contact');
+  if (!$old_email_contact) {
+    $old_email_contact = CRM_CiviMailchimp_Utils::getContactById($email['contact_id']);
+    civimailchimp_static('old_email_contact', $old_email_contact);
+  }
+}
+
+/**
+ * Implementation of hook_civicrm_postProcess for the Inline Email Edit form.
+ *
+ * Normally we would want to use hook_civicrm_post for this, but the problem
+ * with using that hook is that it doesn't give us access to the new Contact
+ * data, since the contact record is saved after the pre and post hooks for
+ * Email are run.
+ */
+function civimailchimp_civicrm_postProcess_CRM_Contact_Form_Inline_Email(&$form) {
+  // We only want to run this if only the inline email edit form was used since
+  // we're already handling the case where the full contact edit form is used.
+  // The old_contact static variable is only set in the hook_civicrm_pre when
+  // the whole contact record is edited so we can use that to check.
+  $old_contact = civimailchimp_static('old_contact');
+  if (!$old_contact) {
+    $old_contact = civimailchimp_static('old_email_contact');
+    $new_contact = CRM_CiviMailchimp_Utils::getContactById($form->_contactId);
+    civimailchimp_civicrm_contact_updated($old_contact, $new_contact);
+  }
+}
+
+/**
  * Implements hook_civicrm_pre for Individual and Organization edit.
  */
 function civimailchimp_civicrm_pre_Contact_edit($contact_id, &$contact) {
@@ -267,9 +299,21 @@ function civimailchimp_civicrm_post_Group_delete($group_id, &$group) {
 }
 
 /**
+ * Implementation of hook_civicrm_postProcess
+ */
+function civimailchimp_civicrm_postProcess($formName, &$form) {
+  $function_name = "civimailchimp_civicrm_postProcess_{$formName}";
+  if (is_callable($function_name))
+  {
+    call_user_func($function_name, &$form);
+  }
+}
+
+/**
  * Implementation of hook_civicrm_pre
  */
 function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
+  //dd("pre {$op} {$object_name}");
   if ($object_name === "Individual" || $object_name === "Organization") {
     $object_name = "Contact";
   }
@@ -284,6 +328,8 @@ function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
  * Implementation of hook_civicrm_post
  */
 function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
+  //dd("post {$op} {$object_name}");
+  //dd($object, $object_id);
   if ($object_name === "Individual" || $object_name === "Organization") {
     $object_name = "Contact";
   }

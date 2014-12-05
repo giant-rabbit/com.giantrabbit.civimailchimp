@@ -286,21 +286,53 @@ class CRM_CiviMailchimp_Utils {
     ));
   }
 
+  /**
+   * Subscribe a Contact to a Mailchimp List.
+   */
   static function subscribeContactToMailchimpList(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email, $merge_vars) {
     $email = array('email' => $email);
     $mailchimp = self::initiateMailchimpApiCall();
     $mailchimp->lists->subscribe($mailchimp_list_id, $email, $merge_vars);
   }
 
+  /**
+   * Unsubscribe a Contact from a Mailchimp List.
+   */
   static function unsubscribeContactFromMailchimpList(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email) {
     $email = array('email' => $email);
     $mailchimp = self::initiateMailchimpApiCall();
     $mailchimp->lists->unsubscribe($mailchimp_list_id, $email);
   }
 
+  /**
+   * Update a Contact's info in Mailchimp.
+   */
   static function updateContactProfileInMailchimp(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email, $merge_vars) {
     $email = array('email' => $email);
     $mailchimp = self::initiateMailchimpApiCall();
     $mailchimp->lists->updateMember($mailchimp_list_id, $email, $merge_vars);
+  }
+
+  /**
+   * Add a Scheduled Job of Syncing from CiviCRM to Mailchimp.
+   *
+   * CiviCRM 4.2 does not have a BAO or API method for adding a scheduled job,
+   * so we're forced to do it ourselves.
+   */
+  static function createSyncScheduledJob() {
+    $domain_id = CRM_Core_Config::domainID();
+    $params = array(
+      'domain_id' => $domain_id,
+      'run_frequency' => 'Always',
+      'name' => 'Sync Contacts to Mailchimp',
+      'description' => 'Sync CiviCRM Contacts to Mailchimp Lists.',
+      'api_entity' => 'CiviMailchimp',
+      'api_action' => 'sync',
+      'parameters' => 'records_to_process_per_run=100',
+      'is_active' => 0,
+    );
+    $job = new CRM_Core_BAO_Job();
+    $job->copyValues($params);
+    return $job->save();
   }
 }

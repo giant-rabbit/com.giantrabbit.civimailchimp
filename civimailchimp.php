@@ -379,6 +379,7 @@ function civimailchimp_civicrm_xmlMenu(&$files) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
 function civimailchimp_civicrm_install() {
+  CRM_CiviMailchimp_Utils::createSyncScheduledJob();
   _civimailchimp_civix_civicrm_install();
 }
 

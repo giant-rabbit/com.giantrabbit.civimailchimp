@@ -220,33 +220,43 @@ function civimailchimp_civicrm_post_GroupContact_delete($group_id, &$contact_ids
  * Implements hook_civicrm_pre for Individual and Organization Email.
  */
 function civimailchimp_civicrm_pre_Email_edit($email_id, &$email) {
-  // Set a static variable to track the old contact record to use for later
-  // comparison.
-  $old_email_contact = civimailchimp_static('old_email_contact');
-  if (!$old_email_contact) {
-    $old_email_contact = CRM_CiviMailchimp_Utils::getContactById($email['contact_id']);
-    civimailchimp_static('old_email_contact', $old_email_contact);
+  // We don't want to run this processing if the full contact record is edited
+  // so we check for a static variable we're setting in the contact pre edit
+  // hook and only continue if that is not set.
+  $old_contact = civimailchimp_static('old_contact');
+  if (!$old_contact) {
+    // Only set the old contact from the email if it isn't already sent.
+    $old_contact_from_email = civimailchimp_static('old_contact_from_email');
+    if (!$old_contact_from_email) {
+      $old_contact_from_email = CRM_CiviMailchimp_Utils::getContactById($email['contact_id']);
+      civimailchimp_static('old_contact_from_email', $old_contact_from_email);
+    }
+    $number_of_emails = civimailchimp_static('number_of_emails');
+    if (!$number_of_emails) {
+      $number_of_emails = count($old_contact_from_email->email);
+      civimailchimp_static('number_of_emails', $number_of_emails);
+    }
   }
 }
 
+
 /**
- * Implementation of hook_civicrm_postProcess for the Inline Email Edit form.
- *
- * Normally we would want to use hook_civicrm_post for this, but the problem
- * with using that hook is that it doesn't give us access to the new Contact
- * data, since the contact record is saved after the pre and post hooks for
- * Email are run.
+ * Implements hook_civicrm_post for Individual and Organization Email.
  */
-function civimailchimp_civicrm_postProcess_CRM_Contact_Form_Inline_Email(&$form) {
-  // We only want to run this if only the inline email edit form was used since
-  // we're already handling the case where the full contact edit form is used.
-  // The old_contact static variable is only set in the hook_civicrm_pre when
-  // the whole contact record is edited so we can use that to check.
-  $old_contact = civimailchimp_static('old_contact');
-  if (!$old_contact) {
-    $old_contact = civimailchimp_static('old_email_contact');
-    $new_contact = CRM_CiviMailchimp_Utils::getContactById($form->_contactId);
-    civimailchimp_civicrm_contact_updated($old_contact, $new_contact);
+function civimailchimp_civicrm_post_Email_edit($email_id, &$email) {
+  // We only want to run this if only the email address is edited since
+  // we're already handling the case where the full contact is editied.
+  $old_contact = civimailchimp_static('old_contact_from_email');
+  if ($old_contact) {
+    $number_of_emails = civimailchimp_static('number_of_emails');
+    $new_emails = civimailchimp_static('new_emails');
+    $new_emails[] = clone $email;
+    civimailchimp_static('new_emails', $new_emails);
+    if (count($new_emails) === $number_of_emails) {
+      $new_contact = clone $old_contact;
+      $new_contact->email = $new_emails;
+      civimailchimp_civicrm_contact_updated($old_contact, $new_contact);
+    }
   }
 }
 

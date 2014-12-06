@@ -95,7 +95,7 @@ function civimailchimp_civicrm_setDefaults(&$form, $mailchimp_sync_setting) {
   if (!empty($mailchimp_sync_setting->mailchimp_interest_groups)) {
     foreach ($mailchimp_sync_setting->mailchimp_interest_groups as $mailchimp_interest_grouping => $mailchimp_interest_groups) {
       foreach ($mailchimp_interest_groups as $mailchimp_interest_group) {
-        $mailchimp_interest_groups_defaults[] = "{$mailchimp_interest_grouping}_{$mailchimp_interest_group}";
+        $mailchimp_interest_groups_defaults[] = "{$mailchimp_interest_grouping}_{$mailchimp_interest_group->mailchimp_interest_group_id}";
       }
     }
   }

@@ -215,6 +215,18 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
+   * Get an Email for a given email id.
+   */
+  static function getEmailbyId($email_id) {
+    $email = new CRM_Core_BAO_Email();
+    $email->id = $email_id;
+    if (!$email->find(TRUE)) {
+      throw new Exception("Could not find Email record with ID {$contact_id}");
+    }
+    return $email;
+  }
+
+  /**
    * Get Group DAO object for a given group id.
    */
   static function getGroupById($group_id) {

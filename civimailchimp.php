@@ -219,23 +219,23 @@ function civimailchimp_civicrm_post_GroupContact_delete($group_id, &$contact_ids
 /**
  * Implements hook_civicrm_pre for Individual and Organization Email.
  */
-function civimailchimp_civicrm_pre_Email_edit($email_id, &$email) {
+function civimailchimp_civicrm_pre_Email($op, $email_id, &$email) {
   // We don't want to run this processing if the full contact record is edited
   // so we check for a static variable we're setting in the contact pre edit
   // hook and only continue if that is not set.
   $old_contact = civimailchimp_static('old_contact');
   if (!$old_contact) {
-    // Only set the old contact from the email if it isn't already sent.
-    $old_contact_from_email = civimailchimp_static('old_contact_from_email');
-    if (!$old_contact_from_email) {
-      $old_contact_from_email = CRM_CiviMailchimp_Utils::getContactById($email['contact_id']);
-      civimailchimp_static('old_contact_from_email', $old_contact_from_email);
+    // When an email is deleted, $email is empty, so we have to lookup the
+    // contact ID.
+    if (!empty($email['contact_id'])) {
+      $contact_id = $email['contact_id'];
     }
-    $number_of_emails = civimailchimp_static('number_of_emails');
-    if (!$number_of_emails) {
-      $number_of_emails = count($old_contact_from_email->email);
-      civimailchimp_static('number_of_emails', $number_of_emails);
+    else {
+      $email = CRM_CiviMailchimp_Utils::getEmailbyId($email_id);
+      $contact_id = $email->contact_id;
     }
+    $old_contact_from_email = CRM_CiviMailchimp_Utils::getContactById($contact_id);
+    civimailchimp_static('old_contact_from_email', $old_contact_from_email);
   }
 }
 
@@ -243,20 +243,13 @@ function civimailchimp_civicrm_pre_Email_edit($email_id, &$email) {
 /**
  * Implements hook_civicrm_post for Individual and Organization Email.
  */
-function civimailchimp_civicrm_post_Email_edit($email_id, &$email) {
-  // We only want to run this if only the email address is edited since
+function civimailchimp_civicrm_post_Email($op, $email_id, &$email) {
+  // We only want to run this if only the email address is changed since
   // we're already handling the case where the full contact is editied.
   $old_contact = civimailchimp_static('old_contact_from_email');
   if ($old_contact) {
-    $number_of_emails = civimailchimp_static('number_of_emails');
-    $new_emails = civimailchimp_static('new_emails');
-    $new_emails[] = clone $email;
-    civimailchimp_static('new_emails', $new_emails);
-    if (count($new_emails) === $number_of_emails) {
-      $new_contact = clone $old_contact;
-      $new_contact->email = $new_emails;
-      civimailchimp_civicrm_contact_updated($old_contact, $new_contact);
-    }
+    $new_contact = CRM_CiviMailchimp_Utils::getContactById($old_contact->id);
+    civimailchimp_civicrm_contact_updated($old_contact, $new_contact);
   }
 }
 
@@ -327,10 +320,14 @@ function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
   if ($object_name === "Individual" || $object_name === "Organization") {
     $object_name = "Contact";
   }
-  $function_name = "civimailchimp_civicrm_pre_{$object_name}_{$op}";
-  if (is_callable($function_name))
+  $function_name_object_op = "civimailchimp_civicrm_pre_{$object_name}_{$op}";
+  $function_name_object = "civimailchimp_civicrm_pre_{$object_name}";
+  if (is_callable($function_name_object_op))
   {
-    call_user_func($function_name, $id, &$params);
+    call_user_func($function_name_object_op, $id, &$params);
+  }
+  elseif (is_callable($function_name_object)) {
+    call_user_func($function_name_object, $op, $id, &$params);
   }
 }
 
@@ -343,10 +340,14 @@ function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
   if ($object_name === "Individual" || $object_name === "Organization") {
     $object_name = "Contact";
   }
-  $function_name = "civimailchimp_civicrm_post_{$object_name}_{$op}";
-  if (is_callable($function_name))
+  $function_name_object_op = "civimailchimp_civicrm_post_{$object_name}_{$op}";
+  $function_name_object = "civimailchimp_civicrm_post_{$object_name}";
+  if (is_callable($function_name_object_op))
   {
-    call_user_func($function_name, $object_id, &$object);
+    call_user_func($function_name_object_op, $object_id, &$object);
+  }
+  elseif (is_callable($function_name_object)) {
+    call_user_func($function_name_object, $op, $object_id, &$object);
   }
 }
 

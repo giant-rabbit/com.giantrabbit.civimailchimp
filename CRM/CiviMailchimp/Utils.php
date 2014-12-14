@@ -304,7 +304,8 @@ class CRM_CiviMailchimp_Utils {
   static function subscribeContactToMailchimpList(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email, $merge_vars) {
     $email = array('email' => $email);
     $mailchimp = self::initiateMailchimpApiCall();
-    $mailchimp->lists->subscribe($mailchimp_list_id, $email, $merge_vars);
+    $result = $mailchimp->lists->subscribe($mailchimp_list_id, $email, $merge_vars, $email_type = 'html', $double_optin = FALSE, $update_existing = TRUE);
+    return $result;
   }
 
   /**
@@ -313,7 +314,8 @@ class CRM_CiviMailchimp_Utils {
   static function unsubscribeContactFromMailchimpList(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email) {
     $email = array('email' => $email);
     $mailchimp = self::initiateMailchimpApiCall();
-    $mailchimp->lists->unsubscribe($mailchimp_list_id, $email);
+    $result = $mailchimp->lists->unsubscribe($mailchimp_list_id, $email, $delete_member = FALSE, $send_goodbye = FALSE, $send_notify = FALSE);
+    return $result;
   }
 
   /**
@@ -322,7 +324,8 @@ class CRM_CiviMailchimp_Utils {
   static function updateContactProfileInMailchimp(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email, $merge_vars) {
     $email = array('email' => $email);
     $mailchimp = self::initiateMailchimpApiCall();
-    $mailchimp->lists->updateMember($mailchimp_list_id, $email, $merge_vars);
+    $result = $mailchimp->lists->updateMember($mailchimp_list_id, $email, $merge_vars);
+    return $result;
   }
 
   /**

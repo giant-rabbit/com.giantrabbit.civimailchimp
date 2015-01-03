@@ -306,8 +306,7 @@ function civimailchimp_civicrm_post_Group_delete($group_id, &$group) {
  */
 function civimailchimp_civicrm_postProcess($formName, &$form) {
   $function_name = "civimailchimp_civicrm_postProcess_{$formName}";
-  if (is_callable($function_name))
-  {
+  if (is_callable($function_name)) {
     call_user_func($function_name, &$form);
   }
 }
@@ -322,8 +321,7 @@ function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
   }
   $function_name_object_op = "civimailchimp_civicrm_pre_{$object_name}_{$op}";
   $function_name_object = "civimailchimp_civicrm_pre_{$object_name}";
-  if (is_callable($function_name_object_op))
-  {
+  if (is_callable($function_name_object_op)) {
     call_user_func($function_name_object_op, $id, &$params);
   }
   elseif (is_callable($function_name_object)) {
@@ -342,8 +340,7 @@ function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
   }
   $function_name_object_op = "civimailchimp_civicrm_post_{$object_name}_{$op}";
   $function_name_object = "civimailchimp_civicrm_post_{$object_name}";
-  if (is_callable($function_name_object_op))
-  {
+  if (is_callable($function_name_object_op)) {
     call_user_func($function_name_object_op, $object_id, &$object);
   }
   elseif (is_callable($function_name_object)) {

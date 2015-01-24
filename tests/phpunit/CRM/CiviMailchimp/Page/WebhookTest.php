@@ -1,7 +1,6 @@
 <?php
 
-// require_once 'CiviTest/CiviUnitTestCase.php';
-require_once 'tests/phpunit/CiviTest/CiviUnitTestCase.php';
+require_once 'CiviTest/CiviUnitTestCase.php';
 
 /**
  * Tests for Mailchimp Webhooks.

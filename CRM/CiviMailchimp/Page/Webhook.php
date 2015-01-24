@@ -10,6 +10,12 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
       $request_type = CRM_Utils_Request::retrieve('type', 'String');
       $request_data = CRM_Utils_Request::retrieve('data', 'String');
 
+      $config = CRM_Core_Config::singleton();
+      if ($config->debug) {
+        $request_data_log = print_r($request_data, TRUE);
+        CRM_Core_Error::debug_log_message("Mailchimp Webhook Request [{$request_type}]: \n{$request_data_log}");
+      }
+
       $function_name = 'self::mailchimpWebhook' . ucwords($request_type);
       if (is_callable($function_name)) {
         call_user_func($function_name, $request_data);

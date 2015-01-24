@@ -215,6 +215,45 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
+   * Get Contacts with the given Mailchimp email address, where the email is not
+   * On Hold and is either the Primary or Bulk email.
+   */
+  static function getContactsByMailchimpEmail($email) {
+    $query = "
+      SELECT
+        contact_id
+      FROM
+        civicrm_email
+      WHERE
+        email = %1
+      AND
+        on_hold = 0
+      AND
+      (
+          is_primary = 1
+        OR
+          is_bulkmail = 1
+      );
+    ";
+    $params = array(1 => array($email, 'String'));
+    $result = CRM_Core_DAO::executeQuery($query, $params);
+    $contact_ids = array();
+    while ($result->fetch()) {
+      $contact_ids[$result->contact_id] = $result->contact_id;
+    }
+    $contacts = array();
+    foreach ($contact_ids as $contact_id) {
+      $contact = self::getContactById($contact_id);
+      $mailchimp_email = self::determineMailchimpEmailForContact($contact);
+      if ($email === $mailchimp_email) {
+        $contacts[] = $contact;
+      }
+    }
+
+    return $contacts;
+  }
+
+  /**
    * Get an Email for a given email id.
    */
   static function getEmailbyId($email_id) {

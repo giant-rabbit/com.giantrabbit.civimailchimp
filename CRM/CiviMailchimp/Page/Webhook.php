@@ -39,6 +39,19 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
    * Update a Mailchimp subscriber's email in CiviCRM.
    */
   static function mailchimpWebhookUpemail($request_data) {
+    $contacts = CRM_CiviMailchimp_Utils::getContactsByMailchimpEmail($request_data['old_email']);
+    $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($request_data['list_id']);
+    $civicrm_group_id = $mailchimp_sync_settings->civicrm_group_id;
+    $mailchimp_contact = NULL;
+    foreach ($contacts as $key => $contact) {
+      if (CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $civicrm_group_id) {
+        $mailchimp_contact = $contact;
+        break;
+      }
+    }
+    if ($mailchimp_contact) {
+      // update the email address for the contact.
+    }
   }
 
   /**

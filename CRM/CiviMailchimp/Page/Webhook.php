@@ -27,12 +27,18 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
    * Add a Mailchimp subscriber to a CiviCRM Group.
    */
   static function mailchimpWebhookSubscribe($request_data) {
+    // Find contact with matching mailchimp email.
+    // Add to group that's set to sync.
+    // Throw exception if contact or group not found.
   }
 
   /**
    * Remove a Mailchimp subscriber from a CiviCRM Group.
    */
   static function mailchimpWebhookUnsubscribe($request_data) {
+    // Find contact with matching mailchimp email.
+    // Remove from group.
+    // Throw exception if contact or group not found.
   }
 
   /**
@@ -50,19 +56,24 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
       }
     }
     if ($mailchimp_contact) {
-      // update the email address for the contact.
+      // update the email address for the first contact that's in the group.
     }
+    // Else throw exception: contact w/email not found.
   }
 
   /**
    * Update a Mailchimp subscriber's Contact data in CiviCRM.
    */
   static function mailchimpWebhookProfile($request_data) {
+    // Find matching contact by mailchimp email.
+    // Update contact info
   }
 
   /**
    * Put a Mailchimp subscriber's email On Hold in CiviCRM.
    */
   static function mailchimpWebhookCleaned($request_data) {
+    // Find matching contact by mailchimp email.
+    // Set email to On Hold.
   }
 }

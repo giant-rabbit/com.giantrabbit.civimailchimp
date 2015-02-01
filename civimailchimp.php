@@ -315,17 +315,18 @@ function civimailchimp_civicrm_postProcess($formName, &$form) {
  * Implementation of hook_civicrm_pre
  */
 function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
-  //dd("pre {$op} {$object_name}");
-  if ($object_name === "Individual" || $object_name === "Organization") {
-    $object_name = "Contact";
-  }
-  $function_name_object_op = "civimailchimp_civicrm_pre_{$object_name}_{$op}";
-  $function_name_object = "civimailchimp_civicrm_pre_{$object_name}";
-  if (is_callable($function_name_object_op)) {
-    call_user_func($function_name_object_op, $id, &$params);
-  }
-  elseif (is_callable($function_name_object)) {
-    call_user_func($function_name_object, $op, $id, &$params);
+  if (!civimailchimp_static('mailchimp_webhook')) {
+    if ($object_name === "Individual" || $object_name === "Organization") {
+      $object_name = "Contact";
+    }
+    $function_name_object_op = "civimailchimp_civicrm_pre_{$object_name}_{$op}";
+    $function_name_object = "civimailchimp_civicrm_pre_{$object_name}";
+    if (is_callable($function_name_object_op)) {
+      call_user_func($function_name_object_op, $id, &$params);
+    }
+    elseif (is_callable($function_name_object)) {
+      call_user_func($function_name_object, $op, $id, &$params);
+    }
   }
 }
 
@@ -333,18 +334,18 @@ function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
  * Implementation of hook_civicrm_post
  */
 function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
-  //dd("post {$op} {$object_name}");
-  //dd($object, $object_id);
-  if ($object_name === "Individual" || $object_name === "Organization") {
-    $object_name = "Contact";
-  }
-  $function_name_object_op = "civimailchimp_civicrm_post_{$object_name}_{$op}";
-  $function_name_object = "civimailchimp_civicrm_post_{$object_name}";
-  if (is_callable($function_name_object_op)) {
-    call_user_func($function_name_object_op, $object_id, &$object);
-  }
-  elseif (is_callable($function_name_object)) {
-    call_user_func($function_name_object, $op, $object_id, &$object);
+  if (!civimailchimp_static('mailchimp_webhook')) {
+    if ($object_name === "Individual" || $object_name === "Organization") {
+      $object_name = "Contact";
+    }
+    $function_name_object_op = "civimailchimp_civicrm_post_{$object_name}_{$op}";
+    $function_name_object = "civimailchimp_civicrm_post_{$object_name}";
+    if (is_callable($function_name_object_op)) {
+      call_user_func($function_name_object_op, $object_id, &$object);
+    }
+    elseif (is_callable($function_name_object)) {
+      call_user_func($function_name_object, $op, $object_id, &$object);
+    }
   }
 }
 

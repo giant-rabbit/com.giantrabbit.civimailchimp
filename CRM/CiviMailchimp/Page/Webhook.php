@@ -18,6 +18,8 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
 
       $function_name = 'self::mailchimpWebhook' . ucwords($request_type);
       if (is_callable($function_name)) {
+        // Set a canary to prevent hooks from firing.
+        civimailchimp_static('mailchimp_webhook', TRUE);
         call_user_func($function_name, $request_data);
       }
     }
@@ -29,36 +31,30 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
   static function mailchimpWebhookSubscribe($request_data) {
     // Find contact with matching mailchimp email.
     // Add to group that's set to sync.
-    // Throw exception if contact or group not found.
   }
 
   /**
    * Remove a Mailchimp subscriber from a CiviCRM Group.
    */
   static function mailchimpWebhookUnsubscribe($request_data) {
-    // Find contact with matching mailchimp email.
-    // Remove from group.
-    // Throw exception if contact or group not found.
+    $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($request_data['old_email'], $request_data['list_id']);
+    CRM_CiviMailchimp_Utils::removeContactFromGroup($mailchimp_contact, $request_data['list_id']);
   }
 
   /**
    * Update a Mailchimp subscriber's email in CiviCRM.
    */
   static function mailchimpWebhookUpemail($request_data) {
-    $contacts = CRM_CiviMailchimp_Utils::getContactsByMailchimpEmail($request_data['old_email']);
-    $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($request_data['list_id']);
-    $civicrm_group_id = $mailchimp_sync_settings->civicrm_group_id;
-    $mailchimp_contact = NULL;
-    foreach ($contacts as $key => $contact) {
-      if (CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $civicrm_group_id) {
-        $mailchimp_contact = $contact;
-        break;
+    $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($request_data['old_email'], $request_data['list_id']);
+    foreach ($mailchimp_contact->email as $email) {
+      if ($email->email === $request_data['old_email']) {
+        $params = array();
+        CRM_Core_DAO::storeValues($email, $params);
+        $params['email'] = $request_data['new_email'];
+        dd($params);
+        CRM_Core_BAO_Email::add($params);
       }
     }
-    if ($mailchimp_contact) {
-      // update the email address for the first contact that's in the group.
-    }
-    // Else throw exception: contact w/email not found.
   }
 
   /**

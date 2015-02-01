@@ -215,10 +215,10 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
-   * Get Contacts with the given Mailchimp email address, where the email is not
+   * Get Contacts with the given email address, where the email is not
    * On Hold and is either the Primary or Bulk email.
    */
-  static function getContactsByMailchimpEmail($email) {
+  static function getContactsWithPrimaryOrBulkEmail($email) {
     $query = "
       SELECT
         contact_id
@@ -239,7 +239,7 @@ class CRM_CiviMailchimp_Utils {
     $result = CRM_Core_DAO::executeQuery($query, $params);
     $contact_ids = array();
     while ($result->fetch()) {
-      $contact_ids[$result->contact_id] = $result->contact_id;
+      $contact_ids[] = $result->contact_id;
     }
     $contacts = array();
     foreach ($contact_ids as $contact_id) {
@@ -251,6 +251,31 @@ class CRM_CiviMailchimp_Utils {
     }
 
     return $contacts;
+  }
+
+  /**
+   * Given an array of Contacts, return the first contact in the given
+   * Mailchimp list.
+   */
+  static function getContactInMailchimpListByEmail($email, $mailchimp_list_id) {
+    $contacts = self::getContactsWithPrimaryOrBulkEmail($email);
+    if (count($contacts) > 1) {
+      // Set warning for re: multiple contacts with same email.
+    }
+    $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($mailchimp_list_id);
+    $civicrm_group_id = $mailchimp_sync_settings->civicrm_group_id;
+    $mailchimp_contact = NULL;
+    foreach ($contacts as $key => $contact) {
+      if (CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $civicrm_group_id)) {
+        $mailchimp_contact = $contact;
+        break;
+      }
+    }
+    if (!$mailchimp_contact) {
+      throw new Exception("Could not find Contact record with email {$email} in group ID {$civicrm_group_id}");
+    }
+
+    return $mailchimp_contact;
   }
 
   /**
@@ -275,6 +300,16 @@ class CRM_CiviMailchimp_Utils {
       throw new Exception("Could not find Group record with ID {$group_id}");
     }
     return $group;
+  }
+
+  /**
+   * Remove a given contact from the group set to sync with the given
+   * Mailchimp list.
+   */
+  static function removeContactFromGroup($contact, $mailchimp_list_id) {
+    $contact_ids = array($contact->id);
+    $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($mailchimp_list_id);
+    CRM_Contact_BAO_GroupContact::removeContactsFromGroup($contact_ids, $mailchimp_sync_settings->civicrm_group_id);
   }
 
   /**

@@ -117,7 +117,7 @@ function civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form
         $doc_link = CRM_Utils_System::docURL2("Managing Scheduled Jobs", TRUE, NULL, NULL, NULL, "wiki");
         $errors['mailchimp_list'] = ts("A valid CiviCRM site key in civicrm.settings.php is required to configure a Group to sync with Mailchimp. More info on generating a site key at %1.", array(1 => $doc_link));
       }
-      $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($fields['mailchimp_list']);
+      $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($fields['mailchimp_list'], FALSE);
       if ($mailchimp_sync_setting) {
         $group_id = $form->getVar('_id');
         if ($mailchimp_sync_setting->civicrm_group_id !== $group_id) {

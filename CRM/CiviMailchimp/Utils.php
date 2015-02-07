@@ -143,7 +143,50 @@ class CRM_CiviMailchimp_Utils {
       }
       $merge_vars['groupings'] = $groupings_merge_var;
     }
+
     return $merge_vars;
+  }
+
+  /**
+   * Create a contact record with data from an incoming Mailchimp request.
+   */
+  static function createContactFromMailchimpRequest($request_data) {
+    $params['contact_type'] = 'Individual';
+    $location_type = CRM_Core_BAO_LocationType::getDefault();
+    $params['email'][1] = array(
+      'email' => $request_data['email'],
+      'is_primary' => 1,
+      'location_type_id' => $location_type->id,
+    );
+    $merge_fields = self::getMailchimpMergeFields($request_data['list_id']);
+    foreach ($merge_fields as $merge_field => $civicrm_field) {
+      if (!empty($request_data['merges'][$merge_field])) {
+        $params[$civicrm_field] = $request_data['merges'][$merge_field];
+      }
+    }
+    $contact = CRM_Contact_BAO_Contact::create($params);
+
+    return $contact;
+  }
+
+  /**
+   * Update a contact record with data from an incoming Mailchimp request.
+   */
+  static function updateContactFromMailchimpRequest($request_data, $contact) {
+    // We have to go the circuitous route to saving so we can trigger
+    // CiviCRM's hooks to allow other extensions to act.
+    $params = array();
+    CRM_Core_DAO::storeValues($contact, $params);
+    $params['contact_id'] = $params['id'];
+    $merge_fields = self::getMailchimpMergeFields($request_data['list_id']);
+    foreach ($merge_fields as $merge_field => $civicrm_field) {
+      if (!empty($request_data['merges'][$merge_field])) {
+        $params[$civicrm_field] = $request_data['merges'][$merge_field];
+      }
+    }
+    $contact = CRM_Contact_BAO_Contact::create($params);
+
+    return $contact;
   }
 
   /**
@@ -167,6 +210,7 @@ class CRM_CiviMailchimp_Utils {
         }
       }
     }
+
     return $mailchimp_email;
   }
 
@@ -218,7 +262,7 @@ class CRM_CiviMailchimp_Utils {
    * Get Contacts with the given email address, where the email is not
    * On Hold and is either the Primary or Bulk email.
    */
-  static function getContactsWithPrimaryOrBulkEmail($email) {
+  static function getContactsWithPrimaryOrBulkEmail($email, $throw_exception = TRUE) {
     $query = "
       SELECT
         contact_id
@@ -249,6 +293,9 @@ class CRM_CiviMailchimp_Utils {
         $contacts[] = $contact;
       }
     }
+    if (empty($contacts) && $throw_exception) {
+      throw new Exception("Could not find contact record with the email {$email}.");
+    }
 
     return $contacts;
   }
@@ -272,7 +319,7 @@ class CRM_CiviMailchimp_Utils {
       }
     }
     if (!$mailchimp_contact) {
-      throw new Exception("Could not find Contact record with email {$email} in group ID {$civicrm_group_id}");
+      throw new Exception("Contact record with email {$email} not found in group ID {$civicrm_group_id}.");
     }
 
     return $mailchimp_contact;
@@ -300,6 +347,16 @@ class CRM_CiviMailchimp_Utils {
       throw new Exception("Could not find Group record with ID {$group_id}");
     }
     return $group;
+  }
+
+  /**
+   * Add a given contact to the group set to sync with the given
+   * Mailchimp list.
+   */
+  static function addContactToGroup($contact, $mailchimp_list_id) {
+    $contact_ids = array($contact->id);
+    $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($mailchimp_list_id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_settings->civicrm_group_id);
   }
 
   /**

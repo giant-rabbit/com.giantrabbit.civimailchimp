@@ -16,11 +16,56 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
   function tearDown() {
     parent::tearDown();
   }
+
+  static function mailchimpWebhookSampleRequest($request_type) {
+    $function_name = 'self::mailchimpWebhookSampleRequest' . ucwords($request_type);
+    if (is_callable($function_name)) {
+      return call_user_func($function_name);
+    }
+  }
+
+  static function mailchimpWebhookSampleRequestSubscribe() {
+    return array(
+      'email' => 'civimailchimp+test@civimailchimp.org',
+      'merges' => array(
+        'EMAIL' => 'civimailchimp+test@civimailchimp.org',
+        'FNAME' => 'Civi',
+        'LNAME' => 'Mailchimp',
+      ),
+      'list_id' => '35cb81331a',
+    );
+  }
+
+  static function mailchimpWebhookSampleRequestUnsubscribe() {
+    return array(
+      'email' => 'civimailchimp+test@civimailchimp.org',
+      'list_id' => '35cb81331a',
+    );
+  }
   
   static function mailchimpWebhookSampleRequestUpemail() {
     return array(
-      'new_email' => 'anemirovsky+1234mailchimp@giantrabbit.com',
-      'old_email' => 'anemirovsky+123mailchimp@giantrabbit.com',
+      'new_email' => 'civimailchimp+test123@civimailchimp.org',
+      'old_email' => 'civimailchimp+test@civimailchimp.org',
+      'list_id' => '35cb81331a',
+    );
+  }
+
+  static function mailchimpWebhookSampleRequestProfile() {
+    return array(
+      'email' => 'civimailchimp+test@civimailchimp.org',
+      'merges' => array(
+        'EMAIL' => 'civimailchimp+test@civimailchimp.org',
+        'FNAME' => 'CiviUpdated',
+        'LNAME' => 'MailchimpUpdated',
+      ),
+      'list_id' => '35cb81331a',
+    );
+  }
+
+  static function mailchimpWebhookSampleRequestCleaned() {
+    return array(
+      'email' => 'civimailchimp+test@civimailchimp.org',
       'list_id' => '35cb81331a',
     );
   }

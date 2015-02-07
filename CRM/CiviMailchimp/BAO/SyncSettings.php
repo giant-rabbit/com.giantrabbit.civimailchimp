@@ -21,11 +21,14 @@ class CRM_CiviMailchimp_BAO_SyncSettings extends CRM_CiviMailchimp_DAO_SyncSetti
   /**
    * Find Mailchimp sync settings by list ID.
    */
-  static function findByListId($list_id) {
+  static function findByListId($list_id, $throw_exception = TRUE) {
     $mailchimp_sync_setting = new CRM_CiviMailchimp_BAO_SyncSettings();
     $mailchimp_sync_setting->mailchimp_list_id = $list_id;
     $mailchimp_sync_setting->find(TRUE);
     if (empty($mailchimp_sync_setting->id)) {
+      if ($throw_exception) {
+        throw new Exception("Could not find a CiviCRM Group configured to sync with Mailchimp List ID {$list_id}.");
+      }
       return NULL;
     }
     $mailchimp_sync_setting->mailchimp_interest_groups = CRM_CiviMailchimp_BAO_InterestGroupsSyncSettings::findBySyncSettingsId($mailchimp_sync_setting->id);

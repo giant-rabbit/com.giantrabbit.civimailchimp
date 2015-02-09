@@ -56,7 +56,8 @@ function civimailchimp_civicrm_contact_updated($old_contact, $new_contact) {
  * Implementation of hook_civicrm_buildForm
  */
 function civimailchimp_civicrm_buildForm($formName, &$form) {
-  if ($formName === "CRM_Group_Form_Edit") {
+  // Don't display the Mailchimp fields if this is a Smart Group.
+  if ($formName === "CRM_Group_Form_Edit" && empty($form->_defaultValues['saved_search_id'])) {
     try {
       $mailchimp_lists = CRM_CiviMailchimp_Utils::getLists();
     }

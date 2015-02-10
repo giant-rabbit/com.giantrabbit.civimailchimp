@@ -3,16 +3,27 @@
 require_once 'CiviTest/CiviUnitTestCase.php';
 
 /**
- * FIXME
+ * Tests for the CRM_CiviMailchimp_Utils class.
  */
 class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   function setUp() {
     $this->quickCleanup(array('civicrm_contact', 'civicrm_email'));
+    // Use the Mailchimp API test class for all the tests.
+    CRM_Core_BAO_Setting::setItem('CRM_CiviMailchimpTest', 'CiviMailchimp Preferences', 'mailchimp_api_class');
     parent::setUp();
   }
 
   function tearDown() {
     parent::tearDown();
+  }
+
+  function testInitiateMailchimpApiCall() {
+    $mailchimp = CRM_CiviMailchimp_Utils::initiateMailchimpApiCall();
+    $this->assertObjectHasAttribute('lists', $mailchimp);
+  }
+
+  function testGetInterestGroups() {
+    $interest_groups = CRM_CiviMailchimp_Utils::getInterestGroups($list_id);
   }
 
   function testDetermineMailchimpEmailForContact() {

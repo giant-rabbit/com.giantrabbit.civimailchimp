@@ -8,8 +8,8 @@
   </item>
   <item>
     <path>civicrm/admin/mailchimp/sync</path>
-    <page_callback>CRM_CiviMailchimp_Page_Sync</page_callback>
-    <title>CiviMailchimp Sync</title>
+    <page_callback>CRM_CiviMailchimp_Form_Sync</page_callback>
+    <title>CiviCRM/Mailchimp Force Sync</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>

@@ -415,6 +415,17 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
+   * Initiate the Mailchimp Subscribe API call.
+   */
+  static function initiateSubscribeContactToMailchimpList($mailchimp_list_id, $email, $merge_vars) {
+    $email = array('email' => $email);
+    $mailchimp = self::initiateMailchimpApiCall();
+    $result = $mailchimp->lists->subscribe($mailchimp_list_id, $email, $merge_vars, $email_type = 'html', $double_optin = FALSE, $update_existing = TRUE);
+
+    return $result;
+  }
+
+  /**
    * Add a mailchimp sync item to the queue.
    */
   static function addMailchimpSyncQueueItem($action, $mailchimp_list_id, $email, $merge_vars = array()) {
@@ -433,9 +444,8 @@ class CRM_CiviMailchimp_Utils {
    * Subscribe a Contact to a Mailchimp List.
    */
   static function subscribeContactToMailchimpList(CRM_Queue_TaskContext $ctx, $mailchimp_list_id, $email, $merge_vars) {
-    $email = array('email' => $email);
-    $mailchimp = self::initiateMailchimpApiCall();
-    $result = $mailchimp->lists->subscribe($mailchimp_list_id, $email, $merge_vars, $email_type = 'html', $double_optin = FALSE, $update_existing = TRUE);
+    $result = self::initiateSubscribeContactToMailchimpList($mailchimp_list_id, $email, $merge_vars);
+
     return $result;
   }
 
@@ -446,6 +456,7 @@ class CRM_CiviMailchimp_Utils {
     $email = array('email' => $email);
     $mailchimp = self::initiateMailchimpApiCall();
     $result = $mailchimp->lists->unsubscribe($mailchimp_list_id, $email, $delete_member = FALSE, $send_goodbye = FALSE, $send_notify = FALSE);
+
     return $result;
   }
 
@@ -456,7 +467,68 @@ class CRM_CiviMailchimp_Utils {
     $email = array('email' => $email);
     $mailchimp = self::initiateMailchimpApiCall();
     $result = $mailchimp->lists->updateMember($mailchimp_list_id, $email, $merge_vars);
+
     return $result;
+  }
+
+  /**
+   * Force subscribe a Contact to a Mailchimp List.
+   *
+   * This is used when for an initial sync between a Group and Mailchimp List.
+   */
+  static function forceSubscribeContactToMailchimpList($contact, $mailchimp_sync_setting) {
+    $email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
+    $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields($mailchimp_sync_setting->mailchimp_list_id);
+    $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact, $mailchimp_sync_setting);
+    $result = self::initiateSubscribeContactToMailchimpList($mailchimp_sync_setting->mailchimp_list_id, $email, $merge_vars);
+
+    return $result;
+  }
+
+  /**
+   * Get all members of a Mailchimp List.
+   *
+   * We do this using Mailchimps Export API as the standard API has a 100 member
+   * return limit: https://apidocs.mailchimp.com/export/1.0/list.func.php
+   */
+  static function getAllMembersOfMailchimpList($list_id) {
+    $api_key = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_api_key');
+    $chunk_size = 4096;
+    $data_center = 'us1';
+    if (preg_match('/-(.+)$/', $api_key, $matches)) {
+      $data_center = $matches[1];
+    }
+    $url = "http://{$data_center}.api.mailchimp.com/export/1.0/list?apikey={$api_key}&id={$list_id}";
+    $handle = @fopen($url,'r');
+    if (!$handle) {
+      throw new Exception("Unable to access Mailchimp export by the following url: {$url}");
+    }
+    $i = 0;
+    $header = array();
+    while (!feof($handle)) {
+      $buffer = fgets($handle, $chunk_size);
+      if (trim($buffer) != ''){
+        $row = json_decode($buffer);
+        // Ignore the header row.
+        if ($i != 0) {
+          // We only use the email, first name and last name fields. We also
+          // format this to match the standard webhook request_data format so
+          // we can use the same utility functions to process the new members.
+          $members[] = array(
+            'email' => $row[0],
+            'list_id' => $list_id,
+            'merges' => array(
+              'FNAME' => $row[1],
+              'LNAME' => $row[2],
+            ),
+          );
+        }
+        $i++;
+      }
+    }
+    fclose($handle);
+
+    return $members;
   }
 
   /**

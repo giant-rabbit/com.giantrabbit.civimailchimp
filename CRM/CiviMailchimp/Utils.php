@@ -73,7 +73,7 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
-   * Format the array of Mailchimp lists returned from get_lists() into a 
+   * Format the array of Mailchimp lists returned from getLists() into a 
    * select field options array.
    */
   static function formatListsAsSelectOptions($mailchimp_lists) {

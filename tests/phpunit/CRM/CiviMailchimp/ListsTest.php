@@ -4,17 +4,6 @@
 * A virtual MailChimp Lists API implementation for use in testing.
 */
 
-define('MAILCHIMP_LISTS_TEST_LIST_A', 'mailchimp_test_list_a');
-define('MAILCHIMP_LISTS_TEST_LIST_B', 'mailchimp_test_list_b');
-define('MAILCHIMP_LISTS_TEST_LIST_C', 'mailchimp_test_list_c');
-define('MAILCHIMP_LISTS_TEST_LIST_INVALID', 'mailchimp_invalid_list');
-
-define('MAILCHIMP_LISTS_TEST_SEGMENT_A', 1);
-define('MAILCHIMP_LISTS_TEST_SEGMENT_B', 2);
-define('MAILCHIMP_LISTS_TEST_SEGMENT_C', 3);
-
-define('MAILCHIMP_LISTS_TEST_BATCH_QUEUE_CRON', 'mailchimp_test_batch_queue_cron');
-
 class CRM_CiviMailchimp_ListsTest {
 
   /** @var string $errorMessage */
@@ -350,13 +339,22 @@ class CRM_CiviMailchimp_ListsTest {
   }
 
   /**
+   * @see Mailchimp_Lists::interestGroupings()
+   */
+  public function interestGroupings($list_id, $counts=false) {
+    $interest_groups = $this->defaultInterestGroups();
+
+    return $interest_groups[$list_id];
+  }
+
+  /**
    * Loads list values, initializing if necessary.
    *
    * @return array
    *   Stored lists.
    */
   protected function loadLists() {
-    $list_data = variable_get('mailchimp_test_list_data', $this->defaultLists());
+    $list_data = $this->defaultLists();
 
     return $list_data;
   }
@@ -405,15 +403,15 @@ class CRM_CiviMailchimp_ListsTest {
     );
     $default_segments = array(
       array(
-        'id' => MAILCHIMP_LISTS_TEST_SEGMENT_A,
+        'id' => 'mailchimp_lists_test_segment_a',
         'name' => 'Test Segment A',
       ),
       array(
-        'id' => MAILCHIMP_LISTS_TEST_SEGMENT_B,
+        'id' => 'mailchimp_lists_test_segment_b',
         'name' => 'Test Segment B',
       ),
       array(
-        'id' => MAILCHIMP_LISTS_TEST_SEGMENT_C,
+        'id' => 'mailchimp_lists_test_segment_c',
         'name' => 'Test Segment C',
       ),
     );
@@ -442,17 +440,17 @@ class CRM_CiviMailchimp_ListsTest {
       ),
     );
     $lists = array(
-      MAILCHIMP_LISTS_TEST_LIST_A => array(
+      'mailchimp_test_list_a' => array(
         'name' => 'Test List A',
         'data' => array(),
         'merge_vars' => $default_mergevars,
         'segments' => $default_segments,
         'webhooks' => $default_webhooks,
         'stats' => array(
-          'group_count' => 0,
+          'group_count' => 3,
         ),
       ),
-      MAILCHIMP_LISTS_TEST_LIST_B => array(
+      'mailchimp_test_list_b' => array(
         'name' => 'Test List B',
         'data' => array(),
         'merge_vars' => $default_mergevars,
@@ -462,7 +460,7 @@ class CRM_CiviMailchimp_ListsTest {
           'group_count' => 0,
         ),
       ),
-      MAILCHIMP_LISTS_TEST_LIST_C => array(
+      'mailchimp_test_list_c' => array(
         'name' => 'Test List C',
         'data' => array(),
         'merge_vars' => $default_mergevars,
@@ -477,9 +475,42 @@ class CRM_CiviMailchimp_ListsTest {
   }
 
   /**
+   * Creates initial interest group values.
+   *
+   * @return array
+   *   Basic interest groups.
+   */
+  protected function defaultInterestGroups() {
+    $interest_groups = array(
+      'mailchimp_lists_test_list_a' => array(
+        array(
+          'id' => 'mailchimp_test_interest_grouping_a',
+          'name' => 'Test Interest Grouping A',
+          'form_field' => 'checkboxes',
+          'groups' => array(
+            array(
+              'id' => 'mailchimp_test_interest_group_a',
+              'name' => 'Test Interest Group A',
+            ),
+            array(
+              'id' => 'mailchimp_test_interest_group_b',
+              'name' => 'Test Interest Group B',
+            ),
+            array(
+              'id' => 'mailchimp_test_interest_group_c',
+              'name' => 'Test Interest Group C',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    return $interest_groups;
+  }
+
+  /**
    * Saves list changes.
    */
   protected function writeLists($lists) {
-    variable_set('mailchimp_test_list_data', $lists);
   }
 }

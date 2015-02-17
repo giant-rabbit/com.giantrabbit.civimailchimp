@@ -25,8 +25,18 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   function testGetInterestGroups() {
     $list_id = 'mailchimp_lists_test_list_a';
     $interest_groups = CRM_CiviMailchimp_Utils::getInterestGroups($list_id);
-    $this->assertArrayHasKey('mailchimp_test_interest_grouping_a', $interest_groups);
     $this->assertCount(3, $interest_groups['mailchimp_test_interest_grouping_a']);
+    $this->assertArrayHasKey('mailchimp_test_interest_grouping_a', $interest_groups);
+  }
+
+  function testFormatListsAsSelectOptions() {
+    $mailchimp_lists = CRM_CiviMailchimp_Utils::getLists();
+    $list_options = CRM_CiviMailchimp_Utils::formatListsAsSelectOptions($mailchimp_lists);
+    $this->assertCount(4, $list_options);
+    $this->assertArrayHasKey('', $list_options);
+    $this->assertArrayHasKey('mailchimp_lists_test_list_a', $list_options);
+    $this->assertArrayHasKey('mailchimp_lists_test_list_b', $list_options);
+    $this->assertArrayHasKey('mailchimp_lists_test_list_c', $list_options);
   }
 
   function testDetermineMailchimpEmailForContact() {

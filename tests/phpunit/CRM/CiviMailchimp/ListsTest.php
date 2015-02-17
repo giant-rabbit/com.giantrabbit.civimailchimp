@@ -440,7 +440,7 @@ class CRM_CiviMailchimp_ListsTest {
       ),
     );
     $lists = array(
-      'mailchimp_test_list_a' => array(
+      'mailchimp_lists_test_list_a' => array(
         'name' => 'Test List A',
         'data' => array(),
         'merge_vars' => $default_mergevars,
@@ -450,7 +450,7 @@ class CRM_CiviMailchimp_ListsTest {
           'group_count' => 3,
         ),
       ),
-      'mailchimp_test_list_b' => array(
+      'mailchimp_lists_test_list_b' => array(
         'name' => 'Test List B',
         'data' => array(),
         'merge_vars' => $default_mergevars,
@@ -460,7 +460,7 @@ class CRM_CiviMailchimp_ListsTest {
           'group_count' => 0,
         ),
       ),
-      'mailchimp_test_list_c' => array(
+      'mailchimp_lists_test_list_c' => array(
         'name' => 'Test List C',
         'data' => array(),
         'merge_vars' => $default_mergevars,

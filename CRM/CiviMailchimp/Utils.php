@@ -311,6 +311,9 @@ class CRM_CiviMailchimp_Utils {
         $contacts[] = $contact;
       }
     }
+    if (count($contacts) > 1) {
+      CRM_Core_Error::debug_log_message(ts('There are %1 Contacts with the email %2. In order to limit potential syncing issues with Mailchimp, it is recommended that all but one Contact have this email marked as On Hold or have the email type changed from being the Primary or Bulk Mailings email address.', array(1 => count($contacts), 2 => $email)));
+    }
     if (empty($contacts) && $throw_exception) {
       throw new Exception("Could not find contact record with the email {$email}.");
     }
@@ -324,9 +327,6 @@ class CRM_CiviMailchimp_Utils {
    */
   static function getContactInMailchimpListByEmail($email, $mailchimp_list_id) {
     $contacts = self::getContactsWithPrimaryOrBulkEmail($email);
-    if (count($contacts) > 1) {
-      // Set warning for re: multiple contacts with same email.
-    }
     $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($mailchimp_list_id);
     $civicrm_group_id = $mailchimp_sync_settings->civicrm_group_id;
     $mailchimp_contact = NULL;

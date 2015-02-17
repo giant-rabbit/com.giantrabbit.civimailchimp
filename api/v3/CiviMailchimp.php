@@ -26,12 +26,13 @@ function civicrm_api3_civi_mailchimp_sync($params) {
     while ($continue_to_next_item && $records_processed < $records_to_process) {
       $record = $runner->runNext();
       if ($record['is_error']) {
-        $message = ts('There was an error syncing contacts to Mailchimp.');
+        $message = ts('[error] There was an error syncing contacts to Mailchimp.');
         if (!empty($record['exception'])) {
           $exception_name = get_class($record['exception']);
-          $message = "{$exception_name}: {$record['exception']->getMessage()}.";
+          $message = "[error] {$exception_name}: {$record['exception']->getMessage()}.";
         }
-        $message .= ts(' %1 records were successfully synced before this error.', array(1 => count($records_processed)));
+        $message .= ts(' %1 records were successfully synced before this error.', array(1 => $records_processed));
+        CRM_Core_Error::debug_log_message($message);
         return civicrm_api3_create_error($message);
       }
       $continue_to_next_item = $record['is_continue'];

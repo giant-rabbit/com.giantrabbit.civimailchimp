@@ -22,6 +22,19 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertObjectHasAttribute('lists', $mailchimp);
   }
 
+  function testGetLists() {
+    $lists = CRM_CiviMailchimp_Utils::getLists();
+    $this->assertCount(3, $lists);
+
+    $list_ids = array('mailchimp_lists_test_list_a', 'mailchimp_lists_test_list_b');
+    $lists = CRM_CiviMailchimp_Utils::getLists($list_ids);
+    $this->assertCount(2, $lists);
+
+    $list_ids = array('invalid_list_id');
+    $lists = CRM_CiviMailchimp_Utils::getLists($list_ids);
+    $this->assertCount(0, $lists);
+  }
+
   function testGetInterestGroups() {
     $list_id = 'mailchimp_lists_test_list_a';
     $interest_groups = CRM_CiviMailchimp_Utils::getInterestGroups($list_id);
@@ -78,7 +91,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $contact = CRM_CiviMailchimp_Utils::getContactById($initial_contact->id);
     $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
     $this->assertEquals($mailchimp_email, $primary_email->email);
-    // Test that is_primary email marked on_hold with no is_bulkmail email 
+    // Test that is_primary email marked on_hold with no is_bulkmail email
     // does not return an email address.
     $primary_email->on_hold = TRUE;
     $primary_email->save();

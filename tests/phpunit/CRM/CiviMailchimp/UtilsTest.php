@@ -30,11 +30,11 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $lists = CRM_CiviMailchimp_Utils::getLists();
     $this->assertCount(3, $lists);
 
-    $list_ids = array('mailchimp_lists_test_list_a', 'mailchimp_lists_test_list_b');
+    $list_ids = array('MailchimpListsTestListA', 'MailchimpListsTestListB');
     $lists = CRM_CiviMailchimp_Utils::getLists($list_ids);
     $this->assertCount(2, $lists);
 
-    $list_ids = array('invalid_list_id');
+    $list_ids = array('InvalidList');
     $lists = CRM_CiviMailchimp_Utils::getLists($list_ids);
     $this->assertCount(0, $lists);
   }

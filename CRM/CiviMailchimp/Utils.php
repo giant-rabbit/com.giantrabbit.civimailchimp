@@ -124,7 +124,7 @@ class CRM_CiviMailchimp_Utils {
   /**
    * Format the Mailchimp merge variables for an API request.
    */
-  static function formatMailchimpMergeVars($merge_fields, $contact, $mailchimp_sync_setting, $updated_mailchimp_email = NULL) {
+  static function formatMailchimpMergeVars($merge_fields, $contact, $updated_mailchimp_email = NULL) {
     $merge_vars = array();
     foreach ($merge_fields as $merge_field => $civicrm_field) {
       $merge_vars[$merge_field] = $contact->$civicrm_field;

@@ -124,7 +124,7 @@ class CRM_CiviMailchimp_Utils {
   /**
    * Format the Mailchimp merge variables for an API request.
    */
-  static function formatMailchimpMergeVars($merge_fields, $contact, $mailchimp_sync_setting, $updated_mailchimp_email = NULL) {
+  static function formatMailchimpMergeVars($merge_fields, $contact, $updated_mailchimp_email = NULL) {
     $merge_vars = array();
     foreach ($merge_fields as $merge_field => $civicrm_field) {
       $merge_vars[$merge_field] = $contact->$civicrm_field;
@@ -146,7 +146,7 @@ class CRM_CiviMailchimp_Utils {
    * name changes. Also, annoyingly, Mailchimp requires sending the name of the
    * Interest Group, which can change, rather than the name, which doesn't.
    */
-  static function addInterestGroupsToMergeVars($mailchimp_list_id) {
+  static function interestGroupingsMergeVar($mailchimp_list_id) {
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($mailchimp_list_id);
     if ($mailchimp_sync_setting->mailchimp_interest_groups) {
       $groupings_merge_var = array();
@@ -465,7 +465,7 @@ class CRM_CiviMailchimp_Utils {
    */
   static function subscribeContactToMailchimpList($mailchimp_list_id, $email, $merge_vars) {
     $email = array('email' => $email);
-    $merge_vars['groupings'] = self::addInterestGroupsToMergeVars($mailchimp_list_id);
+    $merge_vars['groupings'] = self::interestGroupingsMergeVar($mailchimp_list_id);
     $mailchimp = self::initiateMailchimpApiCall();
     $result = $mailchimp->lists->subscribe($mailchimp_list_id, $email, $merge_vars, $email_type = 'html', $double_optin = FALSE, $update_existing = TRUE);
 
@@ -488,7 +488,7 @@ class CRM_CiviMailchimp_Utils {
    */
   static function updateContactProfileInMailchimp($mailchimp_list_id, $email, $merge_vars) {
     $email = array('email' => $email);
-    $merge_vars['groupings'] = self::addInterestGroupsToMergeVars($mailchimp_list_id);
+    $merge_vars['groupings'] = self::interestGroupingsMergeVar($mailchimp_list_id);
     $mailchimp = self::initiateMailchimpApiCall();
     $result = $mailchimp->lists->updateMember($mailchimp_list_id, $email, $merge_vars);
 

@@ -113,20 +113,17 @@ class CRM_CiviMailchimp_BAO_SyncSettings extends CRM_CiviMailchimp_DAO_SyncSetti
   /**
    * Delete Mailchimp sync settings.
    */
-  static function deleteSettings($params) {
+  static function deleteSettings($mailchimp_sync_setting) {
     $transaction = new CRM_Core_Transaction();
     try {
-      $mailchimp_sync_settings = self::findByGroupId($params['civicrm_group_id']);
-      if ($mailchimp_sync_settings) {
-        $mailchimp_sync_settings->delete();
-        CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList($mailchimp_sync_settings->mailchimp_list_id);
-      }
+      $mailchimp_sync_setting->delete();
+      CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList($mailchimp_sync_setting->mailchimp_list_id);
     }
     catch (Exception $e) {
       $transaction->rollback();
       throw $e;
     }
     $transaction->commit();
-    return $mailchimp_sync_settings;
+    return $mailchimp_sync_setting;
   }
 }

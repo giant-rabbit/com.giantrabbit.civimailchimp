@@ -401,20 +401,6 @@ class CRM_CiviMailchimp_ListsTest {
         'public' => TRUE,
       ),
     );
-    $default_segments = array(
-      array(
-        'id' => 'mailchimp_lists_test_segment_a',
-        'name' => 'Test Segment A',
-      ),
-      array(
-        'id' => 'mailchimp_lists_test_segment_b',
-        'name' => 'Test Segment B',
-      ),
-      array(
-        'id' => 'mailchimp_lists_test_segment_c',
-        'name' => 'Test Segment C',
-      ),
-    );
     $default_webhooks = array(
       array(
         'url' => 'http://example.org/web-hook-subscribe',
@@ -440,31 +426,28 @@ class CRM_CiviMailchimp_ListsTest {
       ),
     );
     $lists = array(
-      'mailchimp_lists_test_list_a' => array(
+      'MailchimpListsTestListA' => array(
         'name' => 'Test List A',
         'data' => array(),
         'merge_vars' => $default_mergevars,
-        'segments' => $default_segments,
         'webhooks' => $default_webhooks,
         'stats' => array(
           'group_count' => 3,
         ),
       ),
-      'mailchimp_lists_test_list_b' => array(
+      'MailchimpListsTestListB' => array(
         'name' => 'Test List B',
         'data' => array(),
         'merge_vars' => $default_mergevars,
-        'segments' => $default_segments,
         'webhooks' => $default_webhooks,
         'stats' => array(
           'group_count' => 0,
         ),
       ),
-      'mailchimp_lists_test_list_c' => array(
+      'MailchimpListsTestListC' => array(
         'name' => 'Test List C',
         'data' => array(),
         'merge_vars' => $default_mergevars,
-        'segments' => $default_segments,
         'webhooks' => $default_webhooks,
         'stats' => array(
           'group_count' => 0,
@@ -482,22 +465,22 @@ class CRM_CiviMailchimp_ListsTest {
    */
   protected function defaultInterestGroups() {
     $interest_groups = array(
-      'mailchimp_lists_test_list_a' => array(
+      'MailchimpListsTestListA' => array(
         array(
-          'id' => 'mailchimp_test_interest_grouping_a',
+          'id' => 'MailchimpTestInterestGroupingA',
           'name' => 'Test Interest Grouping A',
           'form_field' => 'checkboxes',
           'groups' => array(
             array(
-              'id' => 'mailchimp_test_interest_group_a',
+              'id' => 'MailchimpTestInterestGroupA',
               'name' => 'Test Interest Group A',
             ),
             array(
-              'id' => 'mailchimp_test_interest_group_b',
+              'id' => 'MailchimpTestInterestGroupB',
               'name' => 'Test Interest Group B',
             ),
             array(
-              'id' => 'mailchimp_test_interest_group_c',
+              'id' => 'MailchimpTestInterestGroupC',
               'name' => 'Test Interest Group C',
             ),
           ),

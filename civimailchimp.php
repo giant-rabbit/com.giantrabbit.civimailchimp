@@ -151,7 +151,10 @@ function civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit(&$form) {
       CRM_CiviMailchimp_BAO_SyncSettings::saveSettings($params);
     }
     else {
-      CRM_CiviMailchimp_BAO_SyncSettings::deleteSettings($params);
+      $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($params['civicrm_group_id']);
+      if ($mailchimp_sync_setting) {
+        CRM_CiviMailchimp_BAO_SyncSettings::deleteSettings($mailchimp_sync_setting);
+      }
     }
   }
 }

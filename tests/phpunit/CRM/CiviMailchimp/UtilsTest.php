@@ -6,10 +6,14 @@ require_once 'CiviTest/CiviUnitTestCase.php';
  * Tests for the CRM_CiviMailchimp_Utils class.
  */
 class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
-  function setUp() {
-    $this->quickCleanup(array('civicrm_contact', 'civicrm_email'));
+
+  static function setUpBeforeClass() {
     // Use the Mailchimp API test class for all the tests.
     CRM_Core_BAO_Setting::setItem('CRM_CiviMailchimpTest', 'CiviMailchimp Preferences', 'mailchimp_api_class');
+  }
+
+  function setUp() {
+    $this->quickCleanup(array('civicrm_contact', 'civicrm_email'));
     parent::setUp();
   }
 
@@ -39,27 +43,38 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $list_id = 'MailchimpListsTestListA';
     $interest_groups = CRM_CiviMailchimp_Utils::getInterestGroups($list_id);
     $this->assertCount(3, $interest_groups['MailchimpTestInterestGroupingA']);
-    $this->assertArrayHasKey('MailchimpTestInterestGroupingA', $interest_groups);
+    $this->assertEquals($interest_groups['MailchimpTestInterestGroupingA']['MailchimpTestInterestGroupA'], 'Test Interest Group A');
+    $this->assertEquals($interest_groups['MailchimpTestInterestGroupingA']['MailchimpTestInterestGroupB'], 'Test Interest Group B');
+    $this->assertEquals($interest_groups['MailchimpTestInterestGroupingA']['MailchimpTestInterestGroupC'], 'Test Interest Group C');
   }
 
   function testFormatListsAsSelectOptions() {
     $mailchimp_lists = CRM_CiviMailchimp_Utils::getLists();
     $list_options = CRM_CiviMailchimp_Utils::formatListsAsSelectOptions($mailchimp_lists);
-    $this->assertArrayHasKey('', $list_options);
-    $this->assertArrayHasKey('MailchimpListsTestListA', $list_options);
-    $this->assertArrayHasKey('MailchimpListsTestListB', $list_options);
-    $this->assertArrayHasKey('MailchimpListsTestListC', $list_options);
+    $this->assertCount(4, $list_options);
+    $this->assertEquals($list_options[''], '- select a list -');
+    $this->assertEquals($list_options['MailchimpListsTestListA'], 'Test List A');
+    $this->assertEquals($list_options['MailchimpListsTestListB'], 'Test List B');
+    $this->assertEquals($list_options['MailchimpListsTestListC'], 'Test List C');
   }
 
   function testFormatInterestGroupsLookup() {
-    $this->markTestIncomplete('This test has not been implemented yet.');
+    $mailchimp_lists = CRM_CiviMailchimp_Utils::getLists();
+    $interest_groups_lookup = CRM_CiviMailchimp_Utils::formatInterestGroupsLookup($mailchimp_lists);
+    $this->assertCount(3, $interest_groups_lookup['MailchimpListsTestListA']);
+    $this->assertEquals($interest_groups_lookup['MailchimpListsTestListA']['MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA'], 'Test Interest Group A');
+    $this->assertEquals($interest_groups_lookup['MailchimpListsTestListA']['MailchimpTestInterestGroupingA_MailchimpTestInterestGroupB'], 'Test Interest Group B');
+    $this->assertEquals($interest_groups_lookup['MailchimpListsTestListA']['MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC'], 'Test Interest Group C');
+    $this->assertArrayNotHasKey('MailchimpListsTestListB', $interest_groups_lookup);
+    $this->assertArrayNotHasKey('MailchimpListsTestListC', $interest_groups_lookup);
   }
 
   function testGetMailchimpMergeFields() {
     // Test that default Merge Fields are accessible.
     $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields();
-    $this->assertArrayHasKey('FNAME', $merge_fields);
-    $this->assertArrayHasKey('LNAME', $merge_fields);
+    $this->assertCount(2, $merge_fields);
+    $this->assertEquals($merge_fields['FNAME'], 'first_name');
+    $this->assertEquals($merge_fields['LNAME'], 'last_name');
     // Test that custom Merge Field settings are accessible.
     $custom_merge_fields_setting['MailchimpListsTestListA'] = array(
       'FIRSTNAME' => 'first_name',
@@ -67,8 +82,9 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     );
     CRM_Core_BAO_Setting::setItem($custom_merge_fields_setting, 'CiviMailchimp Preferences', 'mailchimp_merge_fields');
     $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields('MailchimpListsTestListA');
-    $this->assertArrayHasKey('FIRSTNAME', $merge_fields);
-    $this->assertArrayHasKey('LASTNAME', $merge_fields);
+    $this->assertCount(2, $merge_fields);
+    $this->assertEquals($merge_fields['FIRSTNAME'], 'first_name');
+    $this->assertEquals($merge_fields['LASTNAME'], 'last_name');
   }
 
   function testFormatMailchimpMergeVars() {
@@ -76,11 +92,13 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $contact_id = $this->individualCreate();
     $contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
     $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact);
+    $this->assertCount(2, $merge_vars);
     $this->assertEquals($merge_vars['FNAME'], $contact->first_name);
     $this->assertEquals($merge_vars['LNAME'], $contact->last_name);
     $this->assertArrayNotHasKey('new-email', $merge_vars);
     $updated_mailchimp_email = 'foo@test.com';
     $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact, $updated_mailchimp_email);
+    $this->assertCount(3, $merge_vars);
     $this->assertEquals($merge_vars['FNAME'], $contact->first_name);
     $this->assertEquals($merge_vars['LNAME'], $contact->last_name);
     $this->assertEquals($merge_vars['new-email'], $updated_mailchimp_email);

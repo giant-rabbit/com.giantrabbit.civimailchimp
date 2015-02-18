@@ -73,15 +73,15 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertEquals($merge_vars['new-email'], $updated_mailchimp_email);
   }
 
-  function testAddInterestGroupsToMergeVars() {
-    $group_id = $this->groupCreate(array('name' => 'Test Group addInterestGroupsToMergeVars'));
+  function testInterestGroupingsMergeVar() {
+    $group_id = $this->groupCreate(array('name' => 'Test Group interestGroupingsMergeVar'));
     $mailchimp_list_id = 'MailchimpListsTestListA';
     $mailchimp_interest_groups = array(
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $mailchimp_sync_setting = CRM_CiviMailchimp_UtilsTest::createTestMailchimpSyncSettings($group_id, $mailchimp_list_id, $mailchimp_interest_groups);
-    $groupings_merge_var = CRM_CiviMailchimp_Utils::addInterestGroupsToMergeVars($mailchimp_list_id);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestSettings($group_id, $mailchimp_list_id, $mailchimp_interest_groups);
+    $groupings_merge_var = CRM_CiviMailchimp_Utils::interestGroupingsMergeVar($mailchimp_list_id);
     $this->assertEquals($groupings_merge_var[0]['id'], 'MailchimpTestInterestGroupingA');
     $this->assertEquals($groupings_merge_var[0]['groups'][0], 'Test Interest Group A');
     $this->assertEquals($groupings_merge_var[0]['groups'][1], 'Test Interest Group C');
@@ -133,16 +133,5 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $contact = CRM_CiviMailchimp_Utils::getContactById($initial_contact->id);
     $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
     $this->assertNull($mailchimp_email);
-  }
-
-  static function createTestMailchimpSyncSettings($group_id, $mailchimp_list_id, $mailchimp_interest_groups = array()) {
-    $params = array(
-      'civicrm_group_id' => $group_id,
-      'mailchimp_list_id' => $mailchimp_list_id,
-      'mailchimp_interest_groups' => $mailchimp_interest_groups,
-    );
-    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::saveSettings($params);
-
-    return $mailchimp_sync_setting;
   }
 }

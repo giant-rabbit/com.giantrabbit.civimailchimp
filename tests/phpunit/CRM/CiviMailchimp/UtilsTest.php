@@ -200,13 +200,17 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $contact = CRM_Contact_BAO_Contact::create($params);
     $group = CRM_CiviMailchimp_UtilsTest::createTestGroupAndSyncSettings('Test group testContactAddedToGroup');
     // Test that the contact is not in the group (contactAddedToGroup returns TRUE)
-    $this->assertTrue(CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id));
+    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id);
+    $this->assertTrue($contact_added_to_group);
     // Test that the contact is in the group (contactAddedToGroup returns FALSE)
-    $contact_ids = array(
-      $contact->id,
-    );
-    $group_with_contact = CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $group->civicrm_group_id);
-    $this->assertFalse(CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id));
+    $contact_ids = array($contact->id,);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $group->civicrm_group_id);
+    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id);
+    $this->assertFalse($contact_added_to_group);
+    // Test that a status other than 'Added' returns TRUE
+    CRM_Contact_BAO_GroupContact::removeContactsFromGroup($contact_ids, $group->civicrm_group_id);
+    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id);
+    $this->assertTrue($contact_added_to_group);
   }
 
   function testGetContactByIdException() {

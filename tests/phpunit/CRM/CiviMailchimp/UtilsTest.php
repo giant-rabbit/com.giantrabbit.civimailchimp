@@ -191,7 +191,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   function testGetContactByIdException() {
     $invalid_contact_id = '99999999999999999';
     $this->setExpectedException('CRM_Core_Exception', "Could not find Contact record with ID {$invalid_contact_id}");
-    $returned_contact = CRM_CiviMailchimp_Utils::getContactById($invalid_contact_id, $throw_exception = TRUE);
+    $returned_contact = CRM_CiviMailchimp_Utils::getContactById($invalid_contact_id);
     $this->assertEmpty($returned_contact);
   }
 

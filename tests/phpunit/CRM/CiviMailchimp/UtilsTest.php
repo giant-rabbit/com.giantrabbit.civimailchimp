@@ -188,6 +188,23 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertNull($mailchimp_email);
   }
 
+  function testGetContactByIdException() {
+    $invalid_contact_id = '99999999999999999';
+    $this->setExpectedException('CRM_Core_Exception', "Could not find Contact record with ID {$invalid_contact_id}");
+    $returned_contact = CRM_CiviMailchimp_Utils::getContactById($invalid_contact_id, $throw_exception = TRUE);
+    $this->assertEmpty($returned_contact);
+  }
+
+  function testGetContactById() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $initial_contact = CRM_Contact_BAO_Contact::create($params);
+    // Test that we can return the matching contact DAO object
+    $returned_contact = CRM_CiviMailchimp_Utils::getContactById($initial_contact->id);
+    $this->assertEquals($initial_contact->id, $returned_contact->id);
+    // Test that we can return the matching email DAO object
+    $this->assertEquals($initial_contact->email[0]->email, $returned_contact->email[0]->email);
+  }
+
   function testGetContactsWithPrimaryOrBulkEmailException() {
     $rand = rand();
     $email = "should_throw_exception{$rand}@exception.com";

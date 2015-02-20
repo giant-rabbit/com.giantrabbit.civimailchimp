@@ -43,28 +43,28 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $list_id = 'MailchimpListsTestListA';
     $interest_groups = CRM_CiviMailchimp_Utils::getInterestGroups($list_id);
     $this->assertCount(3, $interest_groups['MailchimpTestInterestGroupingA']);
-    $this->assertEquals($interest_groups['MailchimpTestInterestGroupingA']['MailchimpTestInterestGroupA'], 'Test Interest Group A');
-    $this->assertEquals($interest_groups['MailchimpTestInterestGroupingA']['MailchimpTestInterestGroupB'], 'Test Interest Group B');
-    $this->assertEquals($interest_groups['MailchimpTestInterestGroupingA']['MailchimpTestInterestGroupC'], 'Test Interest Group C');
+    $this->assertEquals('Test Interest Group A', $interest_groups['MailchimpTestInterestGroupingA']['MailchimpTestInterestGroupA']);
+    $this->assertEquals('Test Interest Group B', $interest_groups['MailchimpTestInterestGroupingA']['MailchimpTestInterestGroupB']);
+    $this->assertEquals('Test Interest Group C', $interest_groups['MailchimpTestInterestGroupingA']['MailchimpTestInterestGroupC']);
   }
 
   function testFormatListsAsSelectOptions() {
     $mailchimp_lists = CRM_CiviMailchimp_Utils::getLists();
     $list_options = CRM_CiviMailchimp_Utils::formatListsAsSelectOptions($mailchimp_lists);
     $this->assertCount(4, $list_options);
-    $this->assertEquals($list_options[''], '- select a list -');
-    $this->assertEquals($list_options['MailchimpListsTestListA'], 'Test List A');
-    $this->assertEquals($list_options['MailchimpListsTestListB'], 'Test List B');
-    $this->assertEquals($list_options['MailchimpListsTestListC'], 'Test List C');
+    $this->assertEquals('- select a list -', $list_options['']);
+    $this->assertEquals('Test List A', $list_options['MailchimpListsTestListA']);
+    $this->assertEquals('Test List B', $list_options['MailchimpListsTestListB']);
+    $this->assertEquals('Test List C', $list_options['MailchimpListsTestListC']);
   }
 
   function testFormatInterestGroupsLookup() {
     $mailchimp_lists = CRM_CiviMailchimp_Utils::getLists();
     $interest_groups_lookup = CRM_CiviMailchimp_Utils::formatInterestGroupsLookup($mailchimp_lists);
     $this->assertCount(3, $interest_groups_lookup['MailchimpListsTestListA']);
-    $this->assertEquals($interest_groups_lookup['MailchimpListsTestListA']['MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA'], 'Test Interest Group A');
-    $this->assertEquals($interest_groups_lookup['MailchimpListsTestListA']['MailchimpTestInterestGroupingA_MailchimpTestInterestGroupB'], 'Test Interest Group B');
-    $this->assertEquals($interest_groups_lookup['MailchimpListsTestListA']['MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC'], 'Test Interest Group C');
+    $this->assertEquals('Test Interest Group A', $interest_groups_lookup['MailchimpListsTestListA']['MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA']);
+    $this->assertEquals('Test Interest Group B', $interest_groups_lookup['MailchimpListsTestListA']['MailchimpTestInterestGroupingA_MailchimpTestInterestGroupB']);
+    $this->assertEquals('Test Interest Group C', $interest_groups_lookup['MailchimpListsTestListA']['MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC']);
     $this->assertArrayNotHasKey('MailchimpListsTestListB', $interest_groups_lookup);
     $this->assertArrayNotHasKey('MailchimpListsTestListC', $interest_groups_lookup);
   }
@@ -73,8 +73,8 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     // Test that default Merge Fields are accessible.
     $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields();
     $this->assertCount(2, $merge_fields);
-    $this->assertEquals($merge_fields['FNAME'], 'first_name');
-    $this->assertEquals($merge_fields['LNAME'], 'last_name');
+    $this->assertEquals('first_name', $merge_fields['FNAME']);
+    $this->assertEquals('last_name', $merge_fields['LNAME']);
     // Test that custom Merge Field settings are accessible.
     $custom_merge_fields_setting['MailchimpListsTestListA'] = array(
       'FIRSTNAME' => 'first_name',
@@ -83,8 +83,8 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     CRM_Core_BAO_Setting::setItem($custom_merge_fields_setting, 'CiviMailchimp Preferences', 'mailchimp_merge_fields');
     $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields('MailchimpListsTestListA');
     $this->assertCount(2, $merge_fields);
-    $this->assertEquals($merge_fields['FIRSTNAME'], 'first_name');
-    $this->assertEquals($merge_fields['LASTNAME'], 'last_name');
+    $this->assertEquals('first_name', $merge_fields['FIRSTNAME']);
+    $this->assertEquals('last_name', $merge_fields['LASTNAME']);
   }
 
   function testFormatMailchimpMergeVars() {
@@ -93,15 +93,15 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
     $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact);
     $this->assertCount(2, $merge_vars);
-    $this->assertEquals($merge_vars['FNAME'], $contact->first_name);
-    $this->assertEquals($merge_vars['LNAME'], $contact->last_name);
+    $this->assertEquals($contact->first_name, $merge_vars['FNAME']);
+    $this->assertEquals($contact->last_name, $merge_vars['LNAME']);
     $this->assertArrayNotHasKey('new-email', $merge_vars);
     $updated_mailchimp_email = 'foo@test.com';
     $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact, $updated_mailchimp_email);
     $this->assertCount(3, $merge_vars);
-    $this->assertEquals($merge_vars['FNAME'], $contact->first_name);
-    $this->assertEquals($merge_vars['LNAME'], $contact->last_name);
-    $this->assertEquals($merge_vars['new-email'], $updated_mailchimp_email);
+    $this->assertEquals($contact->first_name, $merge_vars['FNAME']);
+    $this->assertEquals($contact->last_name, $merge_vars['LNAME']);
+    $this->assertEquals($updated_mailchimp_email, $merge_vars['new-email']);
   }
 
   function testInterestGroupingsMergeVar() {
@@ -110,22 +110,22 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
     $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test Group testInterestGroupingsMergeVar', 'MailchimpListsTestListA', $mailchimp_interest_groups);
-    $groupings_merge_var = CRM_CiviMailchimp_Utils::interestGroupingsMergeVar($mailchimp_list_id);
-    $this->assertEquals($groupings_merge_var[0]['id'], 'MailchimpTestInterestGroupingA');
-    $this->assertEquals($groupings_merge_var[0]['groups'][0], 'Test Interest Group A');
-    $this->assertEquals($groupings_merge_var[0]['groups'][1], 'Test Interest Group C');
+    $groupings_merge_var = CRM_CiviMailchimp_Utils::interestGroupingsMergeVar($mailchimp_sync_setting->mailchimp_list_id);
+    $this->assertEquals('MailchimpTestInterestGroupingA', $groupings_merge_var[0]['id']);
+    $this->assertEquals('Test Interest Group A', $groupings_merge_var[0]['groups'][0]);
+    $this->assertEquals('Test Interest Group C', $groupings_merge_var[0]['groups'][1]);
   }
 
   function testCreateContactFromMailchimpRequest() {
     $request_data = CRM_CiviMailchimp_Page_WebhookTest::sampleRequestSubscribeOrProfileUpdate();
     $contact = CRM_CiviMailchimp_Utils::createContactFromMailchimpRequest($request_data);
     $location_type = CRM_Core_BAO_LocationType::getDefault();
-    $this->assertEquals($contact->contact_type, 'Individual');
-    $this->assertEquals($contact->first_name, $request_data['merges']['FNAME']);
-    $this->assertEquals($contact->last_name, $request_data['merges']['LNAME']);
-    $this->assertEquals($contact->email[0]->email, $request_data['email']);
-    $this->assertEquals($contact->email[0]->is_primary, 1);
-    $this->assertEquals($contact->email[0]->location_type_id, $location_type->id);
+    $this->assertEquals('Individual', $contact->contact_type);
+    $this->assertEquals($request_data['merges']['FNAME'], $contact->first_name);
+    $this->assertEquals($request_data['merges']['LNAME'], $contact->last_name);
+    $this->assertEquals($request_data['email'], $contact->email[0]->email);
+    $this->assertEquals(1, $contact->email[0]->is_primary);
+    $this->assertEquals($location_type->id, $contact->email[0]->location_type_id);
   }
 
   function testUpdateContactFromMailchimpRequest() {
@@ -136,8 +136,8 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $request_data['merges']['LNAME'] = "MailchimpNew{$rand}";
     $updated_contact = CRM_CiviMailchimp_Utils::updateContactFromMailchimpRequest($request_data, $contact);
     $this->assertEquals($contact->id, $updated_contact->id);
-    $this->assertEquals($updated_contact->first_name, $request_data['merges']['FNAME']);
-    $this->assertEquals($updated_contact->last_name, $request_data['merges']['LNAME']);
+    $this->assertEquals($request_data['merges']['FNAME'], $updated_contact->first_name);
+    $this->assertEquals($request_data['merges']['LNAME'], $updated_contact->last_name);
   }
 
   function testDetermineMailchimpEmailForContact() {
@@ -172,13 +172,13 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $contact->is_opt_out = FALSE;
     $contact->save();
     $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
-    $this->assertEquals($mailchimp_email, $bulk_email->email);
+    $this->assertEquals($bulk_email->email, $mailchimp_email);
     // Test that is_primary email is returned if no is_bulkmail email exists.
     $bulk_email->is_bulkmail = FALSE;
     $bulk_email->save();
     $contact = CRM_CiviMailchimp_Utils::getContactById($initial_contact->id);
     $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
-    $this->assertEquals($mailchimp_email, $primary_email->email);
+    $this->assertEquals($primary_email->email, $mailchimp_email);
     // Test that is_primary email marked on_hold with no is_bulkmail email
     // does not return an email address.
     $primary_email->on_hold = TRUE;
@@ -248,17 +248,17 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $contacts = CRM_CiviMailchimp_Utils::getContactsWithPrimaryOrBulkEmail($email, $throw_exception = TRUE);
     $this->assertCount(2, $contacts);
     // Test the first contact.
-    $this->assertEquals($contacts[0]->email[0]->email, $email);
-    $this->assertEquals($contacts[0]->email[0]->is_primary, 1);
-    $this->assertEquals($contacts[0]->email[0]->on_hold, 0);
-    $this->assertEquals($contacts[0]->do_not_email, 0);
-    $this->assertEquals($contacts[0]->is_opt_out, 0);
+    $this->assertEquals($email, $contacts[0]->email[0]->email);
+    $this->assertEquals(1, $contacts[0]->email[0]->is_primary);
+    $this->assertEquals(0, $contacts[0]->email[0]->on_hold);
+    $this->assertEquals(0, $contacts[0]->do_not_email);
+    $this->assertEquals(0, $contacts[0]->is_opt_out);
     // Test the second contact.
-    $this->assertEquals($contacts[1]->email[0]->email, $email);
-    $this->assertEquals($contacts[1]->email[0]->is_bulkmail, 1);
-    $this->assertEquals($contacts[1]->email[0]->on_hold, 0);
-    $this->assertEquals($contacts[1]->do_not_email, 0);
-    $this->assertEquals($contacts[1]->is_opt_out, 0);
+    $this->assertEquals($email, $contacts[1]->email[0]->email);
+    $this->assertEquals(1, $contacts[1]->email[0]->is_bulkmail);
+    $this->assertEquals(0, $contacts[1]->email[0]->on_hold);
+    $this->assertEquals(0, $contacts[1]->do_not_email);
+    $this->assertEquals(0, $contacts[1]->is_opt_out);
   }
 
   function testGetContactInMailchimpListByEmailException() {
@@ -279,7 +279,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
     $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($email, $mailchimp_sync_setting->mailchimp_list_id);
     $this->assertEquals($contact->id, $mailchimp_contact->id);
-    $this->assertEquals($mailchimp_contact->email[0]->email, $email);
+    $this->assertEquals($email, $mailchimp_contact->email[0]->email);
   }
 
   function createTestGroupAndSyncSettings($group_name, $mailchimp_list_id = 'MailchimpListsTestListA', $mailchimp_interest_groups = array()) {

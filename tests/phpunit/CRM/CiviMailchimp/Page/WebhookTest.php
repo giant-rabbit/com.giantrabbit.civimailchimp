@@ -17,56 +17,33 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
     parent::tearDown();
   }
 
-  static function mailchimpWebhookSampleRequest($request_type) {
-    $function_name = 'self::mailchimpWebhookSampleRequest' . ucwords($request_type);
-    if (is_callable($function_name)) {
-      return call_user_func($function_name);
-    }
-  }
-
-  static function mailchimpWebhookSampleRequestSubscribe() {
+  static function sampleRequestSubscribeOrProfileUpdate() {
+    $rand = rand();
     return array(
-      'email' => 'civimailchimp+test@civimailchimp.org',
+      'email' => "civimailchimp_test+{$rand}@civimailchimp.org",
       'merges' => array(
-        'EMAIL' => 'civimailchimp+test@civimailchimp.org',
-        'FNAME' => 'Civi',
-        'LNAME' => 'Mailchimp',
+        'EMAIL' => "civimailchimp_test+{$rand}@civimailchimp.org",
+        'FNAME' => "Civi{$rand}",
+        'LNAME' => "Mailchimp{$rand}",
       ),
-      'list_id' => '35cb81331a',
+      'list_id' => 'MailchimpListsTestListA',
     );
   }
 
-  static function mailchimpWebhookSampleRequestUnsubscribe() {
+  static function sampleRequestUnsubscribeOrCleaned() {
+    $rand = rand();
     return array(
-      'email' => 'civimailchimp+test@civimailchimp.org',
-      'list_id' => '35cb81331a',
+      'email' => "civimailchimp_test+{$rand}@civimailchimp.org",
+      'list_id' => 'MailchimpListsTestListA',
     );
   }
   
-  static function mailchimpWebhookSampleRequestUpemail() {
+  static function sampleRequestUpemail() {
+    $rand = rand();
     return array(
-      'new_email' => 'civimailchimp+test123@civimailchimp.org',
-      'old_email' => 'civimailchimp+test@civimailchimp.org',
-      'list_id' => '35cb81331a',
-    );
-  }
-
-  static function mailchimpWebhookSampleRequestProfile() {
-    return array(
-      'email' => 'civimailchimp+test@civimailchimp.org',
-      'merges' => array(
-        'EMAIL' => 'civimailchimp+test@civimailchimp.org',
-        'FNAME' => 'CiviUpdated',
-        'LNAME' => 'MailchimpUpdated',
-      ),
-      'list_id' => '35cb81331a',
-    );
-  }
-
-  static function mailchimpWebhookSampleRequestCleaned() {
-    return array(
-      'email' => 'civimailchimp+test@civimailchimp.org',
-      'list_id' => '35cb81331a',
+      'new_email' => "civimailchimp_test_new+{$rand}@civimailchimp.org",
+      'old_email' => "civimailchimp_test+{$rand}@civimailchimp.org",
+      'list_id' => 'MailchimpListsTestListA',
     );
   }
 }

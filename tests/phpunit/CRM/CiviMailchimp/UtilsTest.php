@@ -105,17 +105,39 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   }
 
   function testInterestGroupingsMergeVar() {
-    $group_id = $this->groupCreate(array('name' => 'Test Group interestGroupingsMergeVar'));
-    $mailchimp_list_id = 'MailchimpListsTestListA';
     $mailchimp_interest_groups = array(
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestSettings($group_id, $mailchimp_list_id, $mailchimp_interest_groups);
+    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test Group testInterestGroupingsMergeVar', 'MailchimpListsTestListA', $mailchimp_interest_groups);
     $groupings_merge_var = CRM_CiviMailchimp_Utils::interestGroupingsMergeVar($mailchimp_list_id);
     $this->assertEquals($groupings_merge_var[0]['id'], 'MailchimpTestInterestGroupingA');
     $this->assertEquals($groupings_merge_var[0]['groups'][0], 'Test Interest Group A');
     $this->assertEquals($groupings_merge_var[0]['groups'][1], 'Test Interest Group C');
+  }
+
+  function testCreateContactFromMailchimpRequest() {
+    $request_data = CRM_CiviMailchimp_Page_WebhookTest::sampleRequestSubscribeOrProfileUpdate();
+    $contact = CRM_CiviMailchimp_Utils::createContactFromMailchimpRequest($request_data);
+    $location_type = CRM_Core_BAO_LocationType::getDefault();
+    $this->assertEquals($contact->contact_type, 'Individual');
+    $this->assertEquals($contact->first_name, $request_data['merges']['FNAME']);
+    $this->assertEquals($contact->last_name, $request_data['merges']['LNAME']);
+    $this->assertEquals($contact->email[0]->email, $request_data['email']);
+    $this->assertEquals($contact->email[0]->is_primary, 1);
+    $this->assertEquals($contact->email[0]->location_type_id, $location_type->id);
+  }
+
+  function testUpdateContactFromMailchimpRequest() {
+    $request_data = CRM_CiviMailchimp_Page_WebhookTest::sampleRequestSubscribeOrProfileUpdate();
+    $contact = CRM_CiviMailchimp_Utils::createContactFromMailchimpRequest($request_data);
+    $rand = rand();
+    $request_data['merges']['FNAME'] = "CiviNew{$rand}";
+    $request_data['merges']['LNAME'] = "MailchimpNew{$rand}";
+    $updated_contact = CRM_CiviMailchimp_Utils::updateContactFromMailchimpRequest($request_data, $contact);
+    $this->assertEquals($contact->id, $updated_contact->id);
+    $this->assertEquals($updated_contact->first_name, $request_data['merges']['FNAME']);
+    $this->assertEquals($updated_contact->last_name, $request_data['merges']['LNAME']);
   }
 
   function testDetermineMailchimpEmailForContact() {
@@ -164,6 +186,90 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $contact = CRM_CiviMailchimp_Utils::getContactById($initial_contact->id);
     $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
     $this->assertNull($mailchimp_email);
+  }
+
+  function testGetContactsWithPrimaryOrBulkEmailException() {
+    $rand = rand();
+    $email = "should_throw_exception{$rand}@exception.com";
+    $this->setExpectedException('CRM_Core_Exception', "Could not find contact record with the email {$email}.");
+    $contacts = CRM_CiviMailchimp_Utils::getContactsWithPrimaryOrBulkEmail($email, $throw_exception = TRUE);
+    $this->assertEmpty($contacts);
+  }
+
+  function testGetContactsWithPrimaryOrBulkEmailNoException() {
+    $rand = rand();
+    $email = "should_throw_exception{$rand}@exception.com";
+    $contacts = CRM_CiviMailchimp_Utils::getContactsWithPrimaryOrBulkEmail($email, $throw_exception = FALSE);
+    $this->assertEmpty($contacts);
+  }
+
+  function testGetContactsWithPrimaryOrBulkEmail() {
+    // Contact with one primary email.
+    $primary_email_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $email = $primary_email_params['email'][0]['email'];
+    $primary_email_contact = CRM_Contact_BAO_Contact::create($primary_email_params);
+    // Contact with bulkmail email and primary email.
+    $bulkmail_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $bulkmail_params['email'][0] = array(
+      'email' => $email,
+      'is_bulkmail' => 1,
+      'is_primary' => 0,
+    );
+    $bulkmail_contact = CRM_Contact_BAO_Contact::create($bulkmail_params);
+    // Contact set to Do Not Email.
+    $do_not_email_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $do_not_email_params['do_not_email'] = 1;
+    $do_not_email_contact = CRM_Contact_BAO_Contact::create($do_not_email_params);
+    // Contact set to Opt Out of Bulk Emails.
+    $is_opt_out_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $is_opt_out_params['is_opt_out'] = 1;
+    $is_opt_out_contact = CRM_Contact_BAO_Contact::create($is_opt_out_params);
+    // Contact with all emails On Hold.
+    $on_hold_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $on_hold_params['email'][0]['on_hold'] = 1;
+    $on_hold_contact = CRM_Contact_BAO_Contact::create($on_hold_params);
+    $contacts = CRM_CiviMailchimp_Utils::getContactsWithPrimaryOrBulkEmail($email, $throw_exception = TRUE);
+    $this->assertCount(2, $contacts);
+    // Test the first contact.
+    $this->assertEquals($contacts[0]->email[0]->email, $email);
+    $this->assertEquals($contacts[0]->email[0]->is_primary, 1);
+    $this->assertEquals($contacts[0]->email[0]->on_hold, 0);
+    $this->assertEquals($contacts[0]->do_not_email, 0);
+    $this->assertEquals($contacts[0]->is_opt_out, 0);
+    // Test the second contact.
+    $this->assertEquals($contacts[1]->email[0]->email, $email);
+    $this->assertEquals($contacts[1]->email[0]->is_bulkmail, 1);
+    $this->assertEquals($contacts[1]->email[0]->on_hold, 0);
+    $this->assertEquals($contacts[1]->do_not_email, 0);
+    $this->assertEquals($contacts[1]->is_opt_out, 0);
+  }
+
+  function testGetContactInMailchimpListByEmailException() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $email = $params['email'][0]['email'];
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test group testGetContactInMailchimpListByEmailException');
+    $this->setExpectedException('CRM_Core_Exception', "Contact record with email {$email} not found in group ID {$mailchimp_sync_setting->civicrm_group_id}.");
+    $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($email, $mailchimp_sync_setting->mailchimp_list_id);
+  }
+
+  function testGetContactInMailchimpListByEmail() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $email = $params['email'][0]['email'];
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test group testGetContactInMailchimpListByEmail');
+    $contact_ids = array($contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($email, $mailchimp_sync_setting->mailchimp_list_id);
+    $this->assertEquals($contact->id, $mailchimp_contact->id);
+    $this->assertEquals($mailchimp_contact->email[0]->email, $email);
+  }
+
+  function createTestGroupAndSyncSettings($group_name, $mailchimp_list_id = 'MailchimpListsTestListA', $mailchimp_interest_groups = array()) {
+    $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestSettings($group_id, $mailchimp_list_id, $mailchimp_interest_groups);
+
+    return $mailchimp_sync_setting;
   }
 
   static function sampleContactParams() {

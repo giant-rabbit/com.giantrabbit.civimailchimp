@@ -17,7 +17,7 @@ class CRM_CiviMailchimp_BAO_SyncSettingsTest extends CiviUnitTestCase {
     parent::tearDown();
   }
 
-  static function createTestSettings($group_id, $mailchimp_list_id, $mailchimp_interest_groups = array()) {
+  static function createTestSettings($group_id, $mailchimp_list_id = 'MailchimpListsTestListA', $mailchimp_interest_groups = array()) {
     // Check to see if there is an existing record for the provided Mailchimp
     // List ID. If so, delete it.
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($mailchimp_list_id, $throw_exception = FALSE);

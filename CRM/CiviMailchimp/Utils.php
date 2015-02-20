@@ -264,7 +264,7 @@ class CRM_CiviMailchimp_Utils {
     $contact = new CRM_Contact_BAO_Contact();
     $contact->id = $contact_id;
     if (!$contact->find(TRUE)) {
-      throw new Exception("Could not find Contact record with ID {$contact_id}");
+      throw new CRM_Core_Exception("Could not find Contact record with ID {$contact_id}");
     }
     $emails = new CRM_Core_BAO_Email();
     $emails->contact_id = $contact->id;
@@ -315,7 +315,7 @@ class CRM_CiviMailchimp_Utils {
       CRM_Core_Error::debug_log_message(ts('There are %1 Contacts with the email %2. In order to limit potential syncing issues with Mailchimp, it is recommended that all but one Contact have this email marked as On Hold or have the email type changed from being the Primary or Bulk Mailings email address.', array(1 => count($contacts), 2 => $email)));
     }
     if (empty($contacts) && $throw_exception) {
-      throw new Exception("Could not find contact record with the email {$email}.");
+      throw new CRM_Core_Exception("Could not find contact record with the email {$email}.");
     }
 
     return $contacts;
@@ -337,7 +337,7 @@ class CRM_CiviMailchimp_Utils {
       }
     }
     if (!$mailchimp_contact) {
-      throw new Exception("Contact record with email {$email} not found in group ID {$civicrm_group_id}.");
+      throw new CRM_Core_Exception("Contact record with email {$email} not found in group ID {$civicrm_group_id}.");
     }
 
     return $mailchimp_contact;
@@ -350,7 +350,7 @@ class CRM_CiviMailchimp_Utils {
     $email = new CRM_Core_BAO_Email();
     $email->id = $email_id;
     if (!$email->find(TRUE)) {
-      throw new Exception("Could not find Email record with ID {$contact_id}");
+      throw new CRM_Core_Exception("Could not find Email record with ID {$contact_id}");
     }
     return $email;
   }
@@ -362,7 +362,7 @@ class CRM_CiviMailchimp_Utils {
     $group = new CRM_Contact_BAO_Group();
     $group->id = $group_id;
     if (!$group->find(TRUE)) {
-      throw new Exception("Could not find Group record with ID {$group_id}");
+      throw new CRM_Core_Exception("Could not find Group record with ID {$group_id}");
     }
     return $group;
   }
@@ -427,7 +427,7 @@ class CRM_CiviMailchimp_Utils {
   static function getSiteKey() {
     $site_key = defined('CIVICRM_SITE_KEY') ? CIVICRM_SITE_KEY : NULL;
     if (!$site_key) {
-      throw new Exception("You need to set a valid site key in civicrm.settings.php for Mailchimp to be able to communicate with CiviCRM using Mailchimp Webhooks.");
+      throw new CRM_Core_Exception("You need to set a valid site key in civicrm.settings.php for Mailchimp to be able to communicate with CiviCRM using Mailchimp Webhooks.");
     }
     return $site_key;
   }
@@ -511,7 +511,7 @@ class CRM_CiviMailchimp_Utils {
     $url = "http://{$data_center}.api.mailchimp.com/export/1.0/list?apikey={$api_key}&id={$list_id}";
     $handle = @fopen($url,'r');
     if (!$handle) {
-      throw new Exception("Unable to access Mailchimp export by the following url: {$url}");
+      throw new CRM_Core_Exception("Unable to access Mailchimp export by the following url: {$url}");
     }
     $i = 0;
     $header = array();

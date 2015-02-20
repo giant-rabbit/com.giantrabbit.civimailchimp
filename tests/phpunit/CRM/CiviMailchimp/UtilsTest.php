@@ -195,6 +195,20 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertNull($mailchimp_email);
   }
 
+  function testContactAddedToGroup() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $group = CRM_CiviMailchimp_UtilsTest::createTestGroupAndSyncSettings('Test group testContactAddedToGroup');
+    // Test that the contact is not in the group (contactAddedToGroup returns TRUE)
+    $this->assertTrue(CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id));
+    // Test that the contact is in the group (contactAddedToGroup returns FALSE)
+    $contact_ids = array(
+      $contact->id,
+    );
+    $group_with_contact = CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $group->civicrm_group_id);
+    $this->assertFalse(CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id));
+  }
+
   function testGetContactByIdException() {
     $invalid_contact_id = '99999999999999999';
     $this->setExpectedException('CRM_Core_Exception', "Could not find Contact record with ID {$invalid_contact_id}");

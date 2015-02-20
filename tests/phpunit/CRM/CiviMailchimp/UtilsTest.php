@@ -165,4 +165,21 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
     $this->assertNull($mailchimp_email);
   }
+
+  static function sampleContactParams() {
+    $rand = rand();
+    $params = array(
+      'first_name' => "Civi{$rand}",
+      'last_name' => "Mailchimp{$rand}",
+      'contact_type' => 'Individual',
+      'email' => array(
+        array(
+          'email' => "civimailchimp_test+{$rand}@civimailchimp.org",
+          'is_primary' => 1,
+        ),
+      ),
+    );
+
+    return $params;
+  }
 }

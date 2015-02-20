@@ -13,11 +13,15 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   }
 
   function setUp() {
-    $this->quickCleanup(array('civicrm_contact', 'civicrm_email'));
     parent::setUp();
   }
 
   function tearDown() {
+    // Normally, we wouldn't want to truncate any tables as it makes running
+    // the tests slower and opens the door for writing test that aren't self-
+    // sufficient, but we're forced into this as CiviUnitTestCase forces a 
+    // quickCleanup on civicrm_contact in its tearDown. :(
+    $this->quickCleanup(array('civicrm_email'));
     parent::tearDown();
   }
 
@@ -85,6 +89,9 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertCount(2, $merge_fields);
     $this->assertEquals('first_name', $merge_fields['FIRSTNAME']);
     $this->assertEquals('last_name', $merge_fields['LASTNAME']);
+    // Remove the custom merge fields setting.
+    $custom_merge_fields_setting = array();
+    CRM_Core_BAO_Setting::setItem($custom_merge_fields_setting, 'CiviMailchimp Preferences', 'mailchimp_merge_fields');
   }
 
   function testFormatMailchimpMergeVars() {

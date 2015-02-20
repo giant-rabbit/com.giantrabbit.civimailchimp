@@ -118,6 +118,7 @@ class CRM_CiviMailchimp_Utils {
         $merge_fields = $custom_merge_fields[$list_id];
       }
     }
+
     return $merge_fields;
   }
 

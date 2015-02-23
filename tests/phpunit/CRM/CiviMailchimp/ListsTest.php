@@ -160,7 +160,6 @@ class CRM_CiviMailchimp_ListsTest {
           'merge_vars' => $merge_vars,
         );
       }
-      $this->writeLists($lists);
 
       $response = array(
         'email' => $email_address,
@@ -191,7 +190,6 @@ class CRM_CiviMailchimp_ListsTest {
           else {
             $lists[$id]['data']['members'][$email_address]['status'] = 'unsubscribed';
           }
-          $this->writeLists($lists);
 
           return TRUE;
         }
@@ -239,25 +237,13 @@ class CRM_CiviMailchimp_ListsTest {
    * @see Mailchimp_Lists::webhookAdd()
    */
   public function webhookAdd($id, $url, $actions=array(), $sources=array()) {
-    $lists = $this->loadLists();
-    if (isset($lists[$id])) {
-      $new_id = (count($lists[$id]['webhooks']) + 1);
-      $webhook = array(
-        'id' => $new_id,
-        'url' => $url,
-        'actions' => $actions,
-        'sources' => $sources,
-      );
-      $lists[$id]['webhooks'][] = $webhook;
-
+    $webhooks = $this->defaultWebhooks();
+    if (isset($webhooks[$id])) {
       $response = array(
-        'id' => $new_id,
+        'id' => 'MailchimpTestWebhookA',
       );
-
-      $this->writeLists($lists);
     }
-    else
-    {
+    else {
       $response = array(
         'status' => 'error',
         'code' => 200,
@@ -271,44 +257,22 @@ class CRM_CiviMailchimp_ListsTest {
    * @see Mailchimp_Lists::webhookDel()
    */
   public function webhookDel($id, $url) {
-    $lists = $this->loadLists();
-    if (isset($lists[$id])) {
-      $complete = FALSE;
-      foreach ($lists[$id]['webhooks'] as $key => $webhook) {
-        if ($webhook['url'] == $url) {
-          unset($lists[$id]['webhooks'][$key]);
-          $this->writeLists($lists);
-          $complete = TRUE;
-          continue;
-        }
+    $webhooks = $this->defaultWebhooks();
+    if (isset($webhooks[$id])) {
+      if ($url === $webhooks[$id]) {
+        $response = array(
+          'complete' => true,
+        );
       }
-
-      $response = array(
-        'complete' => $complete,
-      );
+      else {
+        $response = array(
+          'status' => 'error',
+          'code' => 200,
+          'name' => 'Invalid_URL',
+        );
+      }
     }
-    else
-    {
-      $response = array(
-        'status' => 'error',
-        'code' => 200,
-        'name' => 'List_DoesNotExist',
-      );
-    }
-    return $response;
-  }
-
-  /**
-   * @see Mailchimp_Lists::webhooks()
-   */
-  public function webhooks($id) {
-    $lists = $this->loadLists();
-
-    if (isset($lists[$id])) {
-      $response = $lists[$id]['webhooks'];
-    }
-    else
-    {
+    else {
       $response = array(
         'status' => 'error',
         'code' => 200,
@@ -401,36 +365,11 @@ class CRM_CiviMailchimp_ListsTest {
         'public' => TRUE,
       ),
     );
-    $default_webhooks = array(
-      array(
-        'url' => 'http://example.org/web-hook-subscribe',
-        'actions' => array(
-          'subscribe' => TRUE
-        ),
-        'sources' => array(
-          'user' => TRUE,
-          'admin' => TRUE,
-          'api' => TRUE,
-        ),
-      ),
-      array(
-        'url' => 'http://example.org/web-hook-unsubscribe',
-        'actions' => array(
-          'unsubscribe' => TRUE
-        ),
-        'sources' => array(
-          'user' => TRUE,
-          'admin' => TRUE,
-          'api' => TRUE,
-        ),
-      ),
-    );
     $lists = array(
       'MailchimpListsTestListA' => array(
         'name' => 'Test List A',
         'data' => array(),
         'merge_vars' => $default_mergevars,
-        'webhooks' => $default_webhooks,
         'stats' => array(
           'group_count' => 3,
         ),
@@ -439,7 +378,6 @@ class CRM_CiviMailchimp_ListsTest {
         'name' => 'Test List B',
         'data' => array(),
         'merge_vars' => $default_mergevars,
-        'webhooks' => $default_webhooks,
         'stats' => array(
           'group_count' => 0,
         ),
@@ -448,7 +386,6 @@ class CRM_CiviMailchimp_ListsTest {
         'name' => 'Test List C',
         'data' => array(),
         'merge_vars' => $default_mergevars,
-        'webhooks' => $default_webhooks,
         'stats' => array(
           'group_count' => 0,
         ),
@@ -492,8 +429,14 @@ class CRM_CiviMailchimp_ListsTest {
   }
 
   /**
-   * Saves list changes.
+   * Create initial list of webhooks.
    */
-  protected function writeLists($lists) {
+  protected function defaultWebhooks() {
+    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
+    $webhooks = array(
+      'MailchimpListsTestListA' => $webhook_url,
+    );
+
+    return $webhooks;
   }
 }

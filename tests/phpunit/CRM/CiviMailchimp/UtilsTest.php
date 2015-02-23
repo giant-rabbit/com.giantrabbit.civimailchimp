@@ -307,6 +307,82 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertEquals($email, $mailchimp_contact->email[0]->email);
   }
 
+  function testAddWebhookToMailchimpList() {
+    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
+    $result = CRM_CiviMailchimp_Utils::addWebhookToMailchimpList('MailchimpListsTestListA');
+    $this->assertEquals('MailchimpTestWebhookA', $result['id']);
+  }
+
+  function testAddWebhookToMailchimpListInvalidList() {
+    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
+    $result = CRM_CiviMailchimp_Utils::addWebhookToMailchimpList('MailchimpListsTestListB');
+    $this->assertEquals('List_DoesNotExist', $result['name']);
+  }
+
+  function testDeleteWebhookFromMailchimpList() {
+    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
+    $result = CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList('MailchimpListsTestListA');
+    $this->assertTrue($result['complete']);
+  }
+
+  function testDeleteWebhookFromMailchimpListInvalidUrl() {
+    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
+    $result = CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList('MailchimpListsTestListA');
+    $this->assertEquals('Invalid_URL', $result['name']);
+  }
+
+  function testDeleteWebhookFromMailchimpListInvalidList() {
+    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
+    $result = CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList('MailchimpListsTestListB');
+    $this->assertEquals('List_DoesNotExist', $result['name']);
+  }
+
+  function testFormatMailchimpWebhookUrl() {
+    $url = CIVICRM_UF_BASEURL;
+    $url = CRM_Utils_File::addTrailingSlash($url);
+    $site_key = CRM_CiviMailchimp_Utils::getSiteKey();
+    $expected_webhook_url = "{$url}civicrm/mailchimp/webhook?key={$site_key}";
+    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
+    $this->assertEquals($expected_webhook_url, $webhook_url);
+  }
+
+  function testFormatMailchimpWebhookUrlCustom() {
+    $url = 'http://example.org/';
+    $base_url = CRM_Core_BAO_Setting::setItem($url, 'CiviMailchimp Preferences', 'mailchimp_webhook_base_url');
+    $site_key = CRM_CiviMailchimp_Utils::getSiteKey();
+    $expected_webhook_url = "{$url}civicrm/mailchimp/webhook?key={$site_key}";
+    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
+    $this->assertEquals($expected_webhook_url, $webhook_url);
+    $base_url = CRM_Core_BAO_Setting::setItem('', 'CiviMailchimp Preferences', 'mailchimp_webhook_base_url');
+  }
+
+  function testGetSiteKey() {
+    $site_key = CRM_CiviMailchimp_Utils::getSiteKey();
+    $this->assertEquals(CIVICRM_SITE_KEY, $site_key);
+  }
+
+  function testAddMailchimpSyncQueueItem() {
+    $action = 'subscribeContactToMailchimpList';
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields();
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact);
+    CRM_CiviMailchimp_Utils::addMailchimpSyncQueueItem($action, $mailchimp_list_id, $params['email'][0]['email'], $merge_vars);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => FALSE,
+    ));
+    $item = $queue->claimItem();
+    $this->assertEquals('CRM_CiviMailchimp_Utils', $item->data->callback[0]);
+    $this->assertEquals('processCiviMailchimpQueueItem', $item->data->callback[1]);
+    $this->assertEquals($action, $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($params['email'][0]['email'], $item->data->arguments[2]);
+    $this->assertEquals($merge_vars, $item->data->arguments[3]);
+  }
+
   function createTestGroupAndSyncSettings($group_name, $mailchimp_list_id = 'MailchimpListsTestListA', $mailchimp_interest_groups = array()) {
     $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestSettings($group_id, $mailchimp_list_id, $mailchimp_interest_groups);

@@ -61,117 +61,20 @@ class CRM_CiviMailchimp_ListsTest {
   }
 
   /**
-   * @see Mailchimp_Lists::segments()
-   */
-  public function segments($id, $type=null) {
-    $lists = $this->loadLists();
-
-    $response = array(
-      'static' => array(),
-      'saved' => array(),
-    );
-    if (isset($lists[$id])) {
-      $response['static'] = $lists[$id]['segments'];
-      $response['saved'] = $lists[$id]['segments'];
-    }
-    return $response;
-  }
-
-  /**
-   * @see Mailchimp_Lists::segmentAdd()
-   */
-  public function segmentAdd($id, $opts) {
-    $lists = $this->loadLists();
-
-    $response = array();
-    if (isset($lists[$id])) {
-      $new_id = uniqid();
-      $new_segment = array(
-        'id' => $new_id,
-        'name' => $opts['name'],
-      );
-      if (isset($opts['segment_opts'])) {
-        $new_segment['segment_opts'] = $opts['segment_opts'];
-      }
-      $lists[$id]['segments'][] = $new_segment;
-      $response['id'] = $new_id;
-    }
-    else
-    {
-      $response['status'] = 'error';
-      $response['code'] = 200;
-      $response['name'] = 'List_DoesNotExist';
-    }
-    return $response;
-  }
-
-  /**
-   * @see Mailchimp_Lists::staticSegmentMembersAdd()
-   */
-  public function staticSegmentMembersAdd($id, $seg_id, $batch) {
-    $lists = $this->loadLists();
-
-    $response = array();
-    if (isset($lists[$id])) {
-      $response['success_count'] = 0;
-      foreach ($batch as $batch_email) {
-        if (isset($lists[$id]['data']['members'][$batch_email['email']])) {
-          // No need to store this data, just increment success count.
-          $response['success_count']++;
-        }
-      }
-    }
-    else
-    {
-      $response['status'] = 'error';
-      $response['code'] = 200;
-      $response['name'] = 'List_DoesNotExist';
-    }
-    return $response;
-  }
-
-  /**
    * @see Mailchimp_Lists::subscribe()
    */
   public function subscribe($id, $email, $merge_vars=null, $email_type='html', $double_optin=true, $update_existing=false, $replace_interests=true, $send_welcome=false) {
     $email_address = $email['email'];
     $lists = $this->loadLists();
     if (isset($lists[$id])) {
-      if (!isset($lists[$id]['data']['members'])) {
-        $lists[$id]['data']['members'] = array();
-      }
-
-      $leid = NULL;
-      $euid = NULL;
-
-      if (isset($lists[$id]['data']['members'][$email_address])) {
-        $lists[$id]['data']['members'][$email_address]['status'] = 'subscribed';
-      }
-      else {
-        $leid = uniqid();
-        $euid = uniqid();
-
-        $lists[$id]['data']['members'][$email_address] = array(
-          'id' => $euid,
-          'leid' => $leid,
-          'status' => 'subscribed',
-          'email' => $email_address,
-          'email_type' => $email_type,
-          'merge_vars' => $merge_vars,
-        );
-      }
-
       $response = array(
         'email' => $email_address,
-        'euid' => $euid,
-        'leid' => $leid,
       );
 
       return $response;
     }
     else {
-      $this->errorMessage = 'Could not add ' . $email_address . ' to non-existant list: ' . $id;
-      return NULL;
+      throw new CRM_Core_Exception('The Mailchimp List ID does not exist.');
     }
   }
 
@@ -179,32 +82,17 @@ class CRM_CiviMailchimp_ListsTest {
    * @see Mailchimp_Lists::unsubscribe()
    */
   public function unsubscribe($id, $email, $delete_member=false, $send_goodbye=true, $send_notify=true) {
-    $email_address = $email['email'];
     $lists = $this->loadLists();
     if (isset($lists[$id])) {
-      if (isset($lists[$id]['data']['members'][$email_address])) {
-        if ($lists[$id]['data']['members'][$email_address]['status'] == 'subscribed') {
-          if ($delete_member) {
-            unset($lists[$id]['data']['members'][$email_address]);
-          }
-          else {
-            $lists[$id]['data']['members'][$email_address]['status'] = 'unsubscribed';
-          }
+      $response = array(
+        'complete' => true,
+      );
 
-          return TRUE;
-        }
-        else {
-          $this->errorMessage = 'Could not unsubscribe ' . $email_address . ' from: ' . $id . ': not currently subscribed.';
-        }
-      }
-      else {
-        $this->errorMessage = 'Could not unsubscribe ' . $email_address . ' from: ' . $id . ': address not on list';
-      }
+      return $response;
     }
     else {
-      $this->errorMessage = 'Could not unsubscribe ' . $email_address . ' from non-existant list: ' . $id;
+      throw new CRM_Core_Exception('The Mailchimp List ID does not exist.');
     }
-    return FALSE;
   }
 
   /**
@@ -215,22 +103,13 @@ class CRM_CiviMailchimp_ListsTest {
     $lists = $this->loadLists();
     $response = array();
     if (isset($lists[$id])) {
-      if (isset($lists[$id]['data']['members'][$email_address])) {
-        if (!empty($merge_vars)) {
-          $lists[$id]['data']['members'][$email_address]['merge_vars'] = $merge_vars;
-        }
-        $lists[$id]['data']['members'][$email_address]['email_type'] = $email_type;
+      $response['email'] = $email_address;
 
-        $response['email'] = $email_address;
-      }
+      return $response;
     }
-    else
-    {
-      $response['status'] = 'error';
-      $response['code'] = 200;
-      $response['name'] = 'List_DoesNotExist';
+    else {
+      throw new CRM_Core_Exception('The Mailchimp List ID does not exist.');
     }
-    return $response;
   }
 
   /**

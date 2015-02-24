@@ -1,0 +1,4 @@
+ ["Email Address","First Name","Last Name","What are you interested in?","Test Interests!","MEMBER_RATING","OPTIN_TIME","OPTIN_IP","CONFIRM_TIME","CONFIRM_IP","LATITUDE","LONGITUDE","GMTOFF","DSTOFF","TIMEZONE","CC","REGION","LAST_CHANGED","LEID","EUID","NOTES"]
+["civimailchimp+test1@civimailchimp.org","Civi1","Mailchimp1","Donating","",2,"",null,"2014-06-06 15:18:58","111.111.111.111",null,null,null,null,null,null,null,"2015-02-24 19:54:06","422093149","64b588f30f",null]
+["civimailchimp+test2@civimailchimp.org","Civi2","Mailchimp2","Donating","",2,"",null,"2015-02-14 00:58:32","111.111.111.111",null,null,null,null,null,null,null,"2015-02-24 19:54:06","424774821","06b321c8cd",null]
+["civimailchimp+test3@civimailchimp.org","Civi3","Mailchimp3","Donating","",2,"",null,"2015-02-17 01:53:17","111.111.111.111",null,null,null,null,null,null,null,"2015-02-24 19:54:06","424787877","8b010fcfa6",null]

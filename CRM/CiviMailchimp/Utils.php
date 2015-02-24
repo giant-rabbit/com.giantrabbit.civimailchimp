@@ -503,21 +503,67 @@ class CRM_CiviMailchimp_Utils {
    * return limit: https://apidocs.mailchimp.com/export/1.0/list.func.php
    */
   static function getAllMembersOfMailchimpList($list_id) {
+    $url = self::formatMailchimpExportApiUrl($list_id);
+    $file_path = self::retrieveMailchimpMemberExportFile($url, $list_id);
+    $members = self::extractMembersFromMailchimpExportFile($file_path, $list_id);
+    self::deleteMailchimpMemberExportFile($file_path);
+
+    return $members;
+  }
+
+  static function formatMailchimpExportApiUrl($list_id) {
     $api_key = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_api_key');
-    $chunk_size = 4096;
     $data_center = 'us1';
     if (preg_match('/-(.+)$/', $api_key, $matches)) {
       $data_center = $matches[1];
     }
     $url = "http://{$data_center}.api.mailchimp.com/export/1.0/list?apikey={$api_key}&id={$list_id}";
-    $handle = @fopen($url,'r');
-    if (!$handle) {
-      throw new CRM_Core_Exception("Unable to access Mailchimp export by the following url: {$url}");
+
+    return $url;
+  }
+
+  /**
+   * Download the Mailchimp export file to a temporary folder.
+   */
+  static function retrieveMailchimpMemberExportFile($url, $list_id) {
+    $config = CRM_Core_Config::singleton();
+    $timestamp = time();
+    $temp_dir = CRM_Utils_File::addTrailingSlash($config->uploadDir);
+    $file_path = "{$temp_dir}mailchimp_export_{$list_id}_{$timestamp}.tmp";
+    $file = fopen($file_path, 'w');
+    if ($file === FALSE) {
+      throw new CRM_Core_Exception("Unable to open the temporary Mailchimp Export file located at {$file_path}.");
+    }
+    $ch = curl_init($url);
+    if ($ch === FALSE) {
+      throw new CRM_Core_Exception("cURL failed to initiate for the url {$url}.");
+    }
+    curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+    curl_setopt($ch, CURLOPT_FILE, $file);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    $data = curl_exec($ch);
+    if ($data === FALSE) {
+      throw new CRM_Core_Exception("cURL failed to retrieve data from the url {$url}.");
+    }
+    curl_close($ch);
+    fclose($file);
+
+    return $file_path;
+  }
+
+  /**
+   * Extract member data from the Mailchimp export file.
+   */
+  static function extractMembersFromMailchimpExportFile($file_path, $list_id) {
+    $file = fopen($file_path, 'r');
+    if ($file === FALSE) {
+      throw new CRM_Core_Exception("Unable to access Mailchimp export file at the following path: {$file_path}");
     }
     $i = 0;
     $header = array();
-    while (!feof($handle)) {
-      $buffer = fgets($handle, $chunk_size);
+    $members = array();
+    while (!feof($file)) {
+      $buffer = fgets($file, 4096);
       if (trim($buffer) != ''){
         $row = json_decode($buffer);
         // Ignore the header row.
@@ -537,9 +583,21 @@ class CRM_CiviMailchimp_Utils {
         $i++;
       }
     }
-    fclose($handle);
+    fclose($file);
 
     return $members;
+  }
+
+  /**
+   * Delete the temporary Mailchimp export file.
+   */
+  static function deleteMailchimpMemberExportFile($file_path) {
+    $result = unlink($file_path);
+    if (!$result) {
+      throw new CRM_Core_Exception("Unable to delete the temporary Mailchimp export file located at {$file_path}.");
+    }
+
+    return $result;
   }
 
   /**

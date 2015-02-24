@@ -30,7 +30,6 @@ class CRM_CiviMailchimp_Form_Sync extends CRM_Core_Form {
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($values['group']);
     $contacts = self::forceCiviToMailchimpSync($mailchimp_sync_setting);
     $mailchimp_members = self::forceMailchimpToCiviSync($mailchimp_sync_setting);
-
     parent::postProcess();
     CRM_Core_Session::setStatus(ts("%1 contacts were synced to Mailchimp and %2  Mailchimp members were synced to CiviCRM.", array(1 => count($contacts), 2 => count($mailchimp_members))), ts('CiviMailchimp Force Sync Successful'), 'success');
     CRM_Utils_System::redirect($this->controller->_entryURL);

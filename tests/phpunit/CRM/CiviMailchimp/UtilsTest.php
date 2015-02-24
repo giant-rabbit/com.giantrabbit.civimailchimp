@@ -420,8 +420,35 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertEquals($email, $response['email']);
   }
 
-  function testGetAllMembersOfMailchimpList() {
+  function testRetrieveMailchimpMemberExportFile() {
+    $url = __DIR__ . '/../../sample_mailchimp_export.txt';
+    $url = 'file:///' . realpath($url);
+    $list_id = 'MailchimpListsTestListA';
+    $file_path = CRM_CiviMailchimp_Utils::retrieveMailchimpMemberExportFile($url, $list_id);
+    $this->assertFileExists($file_path);
+    $this->assertFileEquals($url, $file_path);
+    CRM_CiviMailchimp_Utils::deleteMailchimpMemberExportFile($file_path);
+    $this->assertFileNotExists($file_path);
+  }
 
+  function testExtractMembersFromMailchimpExportFile() {
+    $file_path = __DIR__ . '/../../sample_mailchimp_export.txt';
+    $file_path = realpath($file_path);
+    $list_id = 'MailchimpListsTestListA';
+    $members = CRM_CiviMailchimp_Utils::extractMembersFromMailchimpExportFile($file_path, $list_id);
+    $this->assertCount(3, $members);
+    $this->assertEquals('civimailchimp+test1@civimailchimp.org', $members[0]['email']);
+    $this->assertEquals($list_id, $members[0]['list_id']);
+    $this->assertEquals('Civi1', $members[0]['merges']['FNAME']);
+    $this->assertEquals('Mailchimp1', $members[0]['merges']['LNAME']);
+    $this->assertEquals('civimailchimp+test2@civimailchimp.org', $members[1]['email']);
+    $this->assertEquals($list_id, $members[1]['list_id']);
+    $this->assertEquals('Civi2', $members[1]['merges']['FNAME']);
+    $this->assertEquals('Mailchimp2', $members[1]['merges']['LNAME']);
+    $this->assertEquals('civimailchimp+test3@civimailchimp.org', $members[2]['email']);
+    $this->assertEquals($list_id, $members[2]['list_id']);
+    $this->assertEquals('Civi3', $members[2]['merges']['FNAME']);
+    $this->assertEquals('Mailchimp3', $members[2]['merges']['LNAME']);
   }
 
   function testCreateSyncScheduledJob() {

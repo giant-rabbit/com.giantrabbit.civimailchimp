@@ -576,7 +576,7 @@ class CRM_CiviMailchimp_Utils {
         if ($row === NULL) {
           throw new CRM_Core_Exception("Unable to decode JSON string from Mailchimp export file at {$file_path}: {$buffer}");
         }
-        if (count($row) < 3) {
+        if (!is_array($row) || count($row) < 3) {
           throw new CRM_Core_Exception("Error processing the Mailchimp export file located at {$file_path}. The following record has less than the required number of items: " . print_r($row, TRUE));
         }
         // Ignore the header row.

@@ -573,6 +573,9 @@ class CRM_CiviMailchimp_Utils {
       }
       if (trim($buffer) != ''){
         $row = json_decode($buffer);
+        if ($row === NULL) {
+          throw new CRM_Core_Exception("Unable to decode JSON string from Mailchimp export file at the path {$file_path}: {$buffer}");
+        }
         // Ignore the header row.
         if ($i != 0) {
           // We only use the email, first name and last name fields. We also

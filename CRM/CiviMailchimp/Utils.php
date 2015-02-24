@@ -527,7 +527,7 @@ class CRM_CiviMailchimp_Utils {
    */
   static function retrieveMailchimpMemberExportFile($url, $list_id) {
     $config = CRM_Core_Config::singleton();
-    $timestamp = time();
+    $timestamp = microtime();
     $temp_dir = CRM_Utils_File::addTrailingSlash($config->uploadDir);
     $file_path = "{$temp_dir}mailchimp_export_{$list_id}_{$timestamp}.tmp";
     $file = fopen($file_path, 'w');
@@ -536,14 +536,18 @@ class CRM_CiviMailchimp_Utils {
     }
     $ch = curl_init($url);
     if ($ch === FALSE) {
-      throw new CRM_Core_Exception("cURL failed to initiate for the url {$url}.");
+      $err_number = curl_errno($ch);
+      $err_string = curl_error($ch);
+      throw new CRM_Core_Exception("cURL failed to initiate for the url {$url}. cURL error # {$err_number}: {$err_string}.");
     }
     curl_setopt($ch, CURLOPT_TIMEOUT, 50);
     curl_setopt($ch, CURLOPT_FILE, $file);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     $data = curl_exec($ch);
     if ($data === FALSE) {
-      throw new CRM_Core_Exception("cURL failed to retrieve data from the url {$url}.");
+      $err_number = curl_errno($ch);
+      $err_string = curl_error($ch);
+      throw new CRM_Core_Exception("cURL failed to retrieve data from the url {$url}. cURL error # {$err_number}: {$err_string}.");
     }
     curl_close($ch);
     fclose($file);
@@ -564,6 +568,9 @@ class CRM_CiviMailchimp_Utils {
     $members = array();
     while (!feof($file)) {
       $buffer = fgets($file, 4096);
+      if ($buffer === FALSE && !feof($file)) {
+        throw new CRM_Core_Exception("There was an error reading the Mailchimp export file at the path {$file_path}: " . print_r(error_get_last(), TRUE));
+      }
       if (trim($buffer) != ''){
         $row = json_decode($buffer);
         // Ignore the header row.
@@ -594,7 +601,7 @@ class CRM_CiviMailchimp_Utils {
   static function deleteMailchimpMemberExportFile($file_path) {
     $result = unlink($file_path);
     if (!$result) {
-      throw new CRM_Core_Exception("Unable to delete the temporary Mailchimp export file located at {$file_path}.");
+      throw new CRM_Core_Exception("Unable to delete the temporary Mailchimp export file located at {$file_path}: " . print_r(error_get_last(), TRUE));
     }
 
     return $result;

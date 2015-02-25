@@ -33,4 +33,23 @@ class CRM_CiviMailchimp_BAO_SyncSettingsTest extends CiviUnitTestCase {
 
     return $mailchimp_sync_setting;
   }
+
+  static function createTestGroupAndSyncSettings($group_name, $mailchimp_list_id = 'MailchimpListsTestListA', $mailchimp_interest_groups = array()) {
+    $group_params = array(
+      'name' => $group_name,
+      'title' => $group_name,
+      'domain_id' => 1,
+      'description' => 'New Test Group Created',
+      'is_active' => 1,
+      'visibility' => 'Public Pages',
+      'group_type' => array(
+        '1' => 1,
+        '2' => 1,
+      ),
+    );
+    $group = CRM_Contact_BAO_Group::create($group_params);
+    $mailchimp_sync_setting = self::createTestSettings($group->id, $mailchimp_list_id, $mailchimp_interest_groups);
+
+    return $mailchimp_sync_setting;
+  }
 }

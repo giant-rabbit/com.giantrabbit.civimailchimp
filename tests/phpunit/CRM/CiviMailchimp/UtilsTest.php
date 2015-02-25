@@ -117,7 +117,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test Group testInterestGroupingsMergeVar', 'MailchimpListsTestListA', $mailchimp_interest_groups);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group testInterestGroupingsMergeVar', 'MailchimpListsTestListA', $mailchimp_interest_groups);
     $groupings_merge_var = CRM_CiviMailchimp_Utils::interestGroupingsMergeVar($mailchimp_sync_setting->mailchimp_list_id);
     $this->assertEquals('MailchimpTestInterestGroupingA', $groupings_merge_var[0]['id']);
     $this->assertEquals('Test Interest Group A', $groupings_merge_var[0]['groups'][0]);
@@ -199,7 +199,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   function testContactAddedToGroup() {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);
-    $group = CRM_CiviMailchimp_UtilsTest::createTestGroupAndSyncSettings('Test group testContactAddedToGroup');
+    $group = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testContactAddedToGroup');
     // Test that the contact is not in the group (contactAddedToGroup returns TRUE)
     $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id);
     $this->assertTrue($contact_added_to_group);
@@ -291,7 +291,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $email = $params['email'][0]['email'];
     $contact = CRM_Contact_BAO_Contact::create($params);
-    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test group testGetContactInMailchimpListByEmailException');
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testGetContactInMailchimpListByEmailException');
     $this->setExpectedException('CRM_Core_Exception', "Contact record with email {$email} not found in group ID {$mailchimp_sync_setting->civicrm_group_id}.");
     $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($email, $mailchimp_sync_setting->mailchimp_list_id);
   }
@@ -300,7 +300,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $email = $params['email'][0]['email'];
     $contact = CRM_Contact_BAO_Contact::create($params);
-    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test group testGetContactInMailchimpListByEmail');
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testGetContactInMailchimpListByEmail');
     $contact_ids = array($contact->id);
     CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
     $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($email, $mailchimp_sync_setting->mailchimp_list_id);
@@ -380,7 +380,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test Group testSubscribeContactToMailchimpList', $mailchimp_list_id, $mailchimp_interest_groups);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group testSubscribeContactToMailchimpList', $mailchimp_list_id, $mailchimp_interest_groups);
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $email = $params['email'][0]['email'];
     $merge_vars = array();
@@ -402,7 +402,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test Group testUpdateContactProfileInMailchimp', $mailchimp_list_id, $mailchimp_interest_groups);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group testUpdateContactProfileInMailchimp', $mailchimp_list_id, $mailchimp_interest_groups);
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $email = $params['email'][0]['email'];
     $merge_vars = array();
@@ -457,7 +457,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test Group test_civicrm_api3_civi_mailchimp_sync', $mailchimp_list_id, $mailchimp_interest_groups);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civicrm_api3_civi_mailchimp_sync', $mailchimp_list_id, $mailchimp_interest_groups);
     $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields();
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);
@@ -481,7 +481,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test Group test_civicrm_api3_civi_mailchimp_sync_exception', $mailchimp_list_id, $mailchimp_interest_groups);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civicrm_api3_civi_mailchimp_sync_exception', $mailchimp_list_id, $mailchimp_interest_groups);
     $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields();
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);
@@ -497,13 +497,6 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
       'reset' => FALSE,
     ));
     $this->assertEquals(2, $queue->numberOfItems());
-  }
-
-  function createTestGroupAndSyncSettings($group_name, $mailchimp_list_id = 'MailchimpListsTestListA', $mailchimp_interest_groups = array()) {
-    $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
-    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestSettings($group_id, $mailchimp_list_id, $mailchimp_interest_groups);
-
-    return $mailchimp_sync_setting;
   }
 
   static function sampleContactParams() {

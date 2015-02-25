@@ -4,13 +4,13 @@
  * A virtual MailChimp API implementation for use in testing.
  */
 
-require 'CiviMailchimp/ListsTest.php';
+require 'MailchimpMock/ListsMock.php';
 
-class CRM_CiviMailchimpTest {
+class CRM_MailchimpMock {
 
   public $lists;
 
   public function __construct($apikey = null, $opts = array()) {
-    $this->lists = new CRM_CiviMailchimp_ListsTest($this);
+    $this->lists = new CRM_MailchimpMock_ListsMock($this);
   }
 }

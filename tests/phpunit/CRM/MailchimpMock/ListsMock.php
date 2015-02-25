@@ -4,12 +4,12 @@
 * A virtual MailChimp Lists API implementation for use in testing.
 */
 
-class CRM_CiviMailchimp_ListsTest {
+class CRM_MailchimpMock_ListsMock {
 
   /** @var string $errorMessage */
   public $errorMessage;
 
-  public function __construct(CRM_CiviMailchimpTest $master) {
+  public function __construct(CRM_MailchimpMock $master) {
   }
 
   /**

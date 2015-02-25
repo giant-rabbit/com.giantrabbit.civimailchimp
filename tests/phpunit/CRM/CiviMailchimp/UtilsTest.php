@@ -10,7 +10,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
 
   static function setUpBeforeClass() {
     // Use the Mailchimp API test class for all the tests.
-    CRM_Core_BAO_Setting::setItem('CRM_CiviMailchimpTest', 'CiviMailchimp Preferences', 'mailchimp_api_class');
+    CRM_Core_BAO_Setting::setItem('CRM_MailchimpMock', 'CiviMailchimp Preferences', 'mailchimp_api_class');
   }
 
   function setUp() {
@@ -22,7 +22,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     // the tests slower and opens the door for writing test that aren't self-
     // sufficient, but we're forced into this as CiviUnitTestCase forces a 
     // quickCleanup on civicrm_contact in its tearDown. :(
-    $this->quickCleanup(array('civicrm_email'));
+    $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item'));
     parent::tearDown();
   }
 
@@ -309,31 +309,21 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   }
 
   function testAddWebhookToMailchimpList() {
-    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
     $result = CRM_CiviMailchimp_Utils::addWebhookToMailchimpList('MailchimpListsTestListA');
     $this->assertEquals('MailchimpTestWebhookA', $result['id']);
   }
 
   function testAddWebhookToMailchimpListInvalidList() {
-    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
     $result = CRM_CiviMailchimp_Utils::addWebhookToMailchimpList('MailchimpListsTestListB');
     $this->assertEquals('List_DoesNotExist', $result['name']);
   }
 
   function testDeleteWebhookFromMailchimpList() {
-    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
     $result = CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList('MailchimpListsTestListA');
     $this->assertTrue($result['complete']);
   }
 
-  function testDeleteWebhookFromMailchimpListInvalidUrl() {
-    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
-    $result = CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList('MailchimpListsTestListA');
-    $this->assertEquals('Invalid_URL', $result['name']);
-  }
-
   function testDeleteWebhookFromMailchimpListInvalidList() {
-    $webhook_url = CRM_CiviMailchimp_Utils::formatMailchimpWebhookUrl();
     $result = CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList('MailchimpListsTestListB');
     $this->assertEquals('List_DoesNotExist', $result['name']);
   }
@@ -369,12 +359,12 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);
     $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact);
-    CRM_CiviMailchimp_Utils::addMailchimpSyncQueueItem($action, $mailchimp_list_id, $params['email'][0]['email'], $merge_vars);
     $queue = CRM_Queue_Service::singleton()->create(array(
       'type' => 'Sql',
       'name' => 'mailchimp-sync',
-      'reset' => FALSE,
+      'reset' => TRUE,
     ));
+    CRM_CiviMailchimp_Utils::addMailchimpSyncQueueItem($action, $mailchimp_list_id, $params['email'][0]['email'], $merge_vars);
     $item = $queue->claimItem();
     $this->assertEquals('CRM_CiviMailchimp_Utils', $item->data->callback[0]);
     $this->assertEquals('processCiviMailchimpQueueItem', $item->data->callback[1]);
@@ -412,7 +402,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test Group testSubscribeContactToMailchimpList', $mailchimp_list_id, $mailchimp_interest_groups);
+    $mailchimp_sync_setting = $this->createTestGroupAndSyncSettings('Test Group testUpdateContactProfileInMailchimp', $mailchimp_list_id, $mailchimp_interest_groups);
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $email = $params['email'][0]['email'];
     $merge_vars = array();

@@ -24,4 +24,28 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item'));
     parent::tearDown();
   }
+
+  function test_civicrm_api3_civi_mailchimp_sync_exception() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_interest_groups = array(
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
+    );
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civicrm_api3_civi_mailchimp_sync_exception', $mailchimp_list_id, $mailchimp_interest_groups);
+    $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields();
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact);
+    CRM_CiviMailchimp_Utils::addMailchimpSyncQueueItem('subscribeContactToMailchimpList', 'MailchimpListsTestListB', $params['email'][0]['email'], $merge_vars);
+    $action = 'unsubscribeContactFromMailchimpList';
+    CRM_CiviMailchimp_Utils::addMailchimpSyncQueueItem('unsubscribeContactFromMailchimpList', 'MailchimpListsTestListB', $params['email'][0]['email']);
+    $job_params['records_to_process_per_run'] = 100;
+    civicrm_api3_civi_mailchimp_sync($job_params);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => FALSE,
+    ));
+    $this->assertEquals(2, $queue->numberOfItems());
+  }
 }

@@ -25,6 +25,41 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     parent::tearDown();
   }
 
+  function test_civimailchimp_civicrm_contact_added_to_group() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_contact_added_to_group', $mailchimp_list_id);
+    $group = CRM_CiviMailchimp_Utils::getGroupById($mailchimp_sync_setting->civicrm_group_id);
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    civimailchimp_civicrm_contact_added_to_group($group, $contact);
+    $item = $queue->claimItem();
+    $this->assertEquals('subscribeContactToMailchimpList', $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($params['email'][0]['email'], $item->data->arguments[2]);
+    $this->assertEquals($params['first_name'], $item->data->arguments[3]['FNAME']);
+    $this->assertEquals($params['last_name'], $item->data->arguments[3]['LNAME']);
+  }
+
+  function test_civimailchimp_civicrm_contact_added_to_group_no_sync_settings() {
+    $group_name = 'Test Group test_added_to_group_no_sync_settings';
+    $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
+    $group = CRM_CiviMailchimp_Utils::getGroupById($group_id);
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    civimailchimp_civicrm_contact_added_to_group($group, $contact);
+    $this->assertEquals(0, $queue->numberOfItems());
+  }
+
   function test_civicrm_api3_civi_mailchimp_sync_exception() {
     $mailchimp_list_id = 'MailchimpListsTestListA';
     $mailchimp_interest_groups = array(

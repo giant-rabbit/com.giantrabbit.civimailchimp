@@ -199,18 +199,18 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   function testContactAddedToGroup() {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);
-    $group = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testContactAddedToGroup');
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testContactAddedToGroup');
     // Test that the contact is not in the group (contactAddedToGroup returns TRUE)
-    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id);
+    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($mailchimp_sync_setting->civicrm_group_id, $contact->id);
     $this->assertTrue($contact_added_to_group);
     // Test that the contact is in the group (contactAddedToGroup returns FALSE)
     $contact_ids = array($contact->id,);
-    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $group->civicrm_group_id);
-    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($mailchimp_sync_setting->civicrm_group_id, $contact->id);
     $this->assertFalse($contact_added_to_group);
     // Test that a status other than 'Added' returns TRUE
-    CRM_Contact_BAO_GroupContact::removeContactsFromGroup($contact_ids, $group->civicrm_group_id);
-    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($group->civicrm_group_id, $contact->id);
+    CRM_Contact_BAO_GroupContact::removeContactsFromGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($mailchimp_sync_setting->civicrm_group_id, $contact->id);
     $this->assertTrue($contact_added_to_group);
   }
 

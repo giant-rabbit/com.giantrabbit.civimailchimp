@@ -1,7 +1,6 @@
 <?php
 
 require_once 'CiviTest/CiviUnitTestCase.php';
-require_once __DIR__ . '/../../../../api/v3/CiviMailchimp.php';
 
 /**
  * Tests for the CRM_CiviMailchimp_Utils class.
@@ -23,6 +22,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     // sufficient, but we're forced into this as CiviUnitTestCase forces a 
     // quickCleanup on civicrm_contact in its tearDown. :(
     $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item'));
+    civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
     parent::tearDown();
   }
 

@@ -18,7 +18,7 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
         // Set a canary to prevent CiviMailchimp hooks from firing, which
         // would trigger updates back to Mailchimp, resulting in an endless
         // loop.
-        civimailchimp_static('mailchimp_webhook', TRUE);
+        civimailchimp_static('mailchimp_do_not_run_hooks', TRUE);
         call_user_func($function_name, $request_data);
       }
     }

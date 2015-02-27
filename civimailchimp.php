@@ -328,7 +328,7 @@ function civimailchimp_civicrm_postProcess($formName, &$form) {
  * Implementation of hook_civicrm_pre
  */
 function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
-  if (!civimailchimp_static('mailchimp_webhook')) {
+  if (!civimailchimp_static('mailchimp_do_not_run_hooks')) {
     if ($object_name === "Individual" || $object_name === "Organization") {
       $object_name = "Contact";
     }
@@ -347,7 +347,7 @@ function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
  * Implementation of hook_civicrm_post
  */
 function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
-  if (!civimailchimp_static('mailchimp_webhook')) {
+  if (!civimailchimp_static('mailchimp_do_not_run_hooks')) {
     if ($object_name === "Individual" || $object_name === "Organization") {
       $object_name = "Contact";
     }

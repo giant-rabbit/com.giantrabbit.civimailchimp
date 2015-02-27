@@ -356,8 +356,12 @@ function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
 /**
  * Stores a static variable of a certain name for later retrieval.
  */
-function civimailchimp_static($name, $new_value = NULL) {
+function civimailchimp_static($name, $new_value = NULL, $reset = FALSE) {
   static $data = NULL;
+  if ($reset) {
+    $data = array();
+    return $data;
+  }
   if ($new_value !== NULL) {
     $data[$name] = $new_value;
   }

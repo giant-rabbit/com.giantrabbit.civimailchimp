@@ -92,6 +92,14 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
  * Sets default values for the Mailchimp sync settings for a group.
  */
 function civimailchimp_civicrm_setDefaults(&$form, $mailchimp_sync_setting) {
+  $defaults = civimailchimp_get_default_sync_settings_for_group($mailchimp_sync_setting);
+  $form->setDefaults($defaults);
+}
+
+/**
+ * Get the default values for the Group edit form for Mailchimp Sync Settings.
+ */
+function civimailchimp_get_default_sync_settings_for_group($mailchimp_sync_setting) {
   $mailchimp_interest_groups_defaults = array();
   if (!empty($mailchimp_sync_setting->mailchimp_interest_groups)) {
     foreach ($mailchimp_sync_setting->mailchimp_interest_groups as $mailchimp_interest_grouping => $mailchimp_interest_groups) {
@@ -104,7 +112,8 @@ function civimailchimp_civicrm_setDefaults(&$form, $mailchimp_sync_setting) {
     'mailchimp_list' => $mailchimp_sync_setting->mailchimp_list_id,
     'mailchimp_interest_groups' => $mailchimp_interest_groups_defaults,
   );
-  $form->setDefaults($defaults);
+
+  return $defaults;
 }
 
 /**
@@ -121,7 +130,7 @@ function civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form
       $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($fields['mailchimp_list'], FALSE);
       if ($mailchimp_sync_setting) {
         $group_id = $form->getVar('_id');
-        if ($mailchimp_sync_setting->civicrm_group_id !== $group_id) {
+        if ($mailchimp_sync_setting->civicrm_group_id != $group_id) {
           $errors['mailchimp_list'] = ts("Another CiviCRM Group is already configured to sync to this Mailchimp list. Please select another list.");
         }
       }

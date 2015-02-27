@@ -186,8 +186,12 @@ class CRM_MailchimpMock_ListsMock {
    */
   public function interestGroupings($list_id, $counts=false) {
     $interest_groups = $this->defaultInterestGroups();
+    $list_interest_groups = array();
+    if (array_key_exists($list_id, $interest_groups)) {
+      $list_interest_groups = $interest_groups[$list_id];
+    }
 
-    return $interest_groups[$list_id];
+    return $list_interest_groups;
   }
 
   /**

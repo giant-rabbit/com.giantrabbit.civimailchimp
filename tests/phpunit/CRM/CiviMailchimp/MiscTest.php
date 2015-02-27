@@ -488,6 +488,85 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $this->assertEmpty($mailchimp_sync_setting);
   }
 
+  function test_civimailchimp_catch_mailchimp_api_error() {
+    $exception = new CRM_Core_Exception("An exception was thrown!");
+    $session = CRM_Core_Session::singleton();
+    $messages = $session->getStatus(TRUE);
+    civimailchimp_catch_mailchimp_api_error($exception);
+    $messages = $session->getStatus();
+    $this->assertEquals('There was an error when trying to retrieve available Mailchimp Lists to sync to a group. CRM_Core_Exception: An exception was thrown!.', $messages[0]['text']);
+    $this->assertEquals('Mailchimp API Error', $messages[0]['title']);
+    $this->assertEquals('alert', $messages[0]['type']);
+    $this->assertEquals(0, $messages[0]['options']['expires']);
+  }
+
+  function test_civimailchimp_civicrm_pre_GroupContact_create_not_in_group() {
+    $group_name = 'Test Group test_civimailchimp_civicrm_pre_GroupContact_create';
+    $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $contact_ids = array($contact->id);
+    civimailchimp_civicrm_pre_GroupContact_create($group_id, $contact_ids);
+    $contacts_added_to_group = civimailchimp_static('contacts_added_to_group');
+    $this->assertEquals($contact_ids, $contacts_added_to_group);
+  }
+
+  function test_civimailchimp_civicrm_pre_GroupContact_create_in_group() {
+    $group_name = 'Test Group civicrm_pre_GroupContact_create_in_group';
+    $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $contact_ids = array($contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $group_id);
+    civimailchimp_civicrm_pre_GroupContact_create($group_id, $contact_ids);
+    $contacts_added_to_group = civimailchimp_static('contacts_added_to_group');
+    $this->assertEmpty($contacts_added_to_group);
+  }
+
+  function test_civimailchimp_civicrm_post_GroupContact_create() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_interest_groups = array(
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
+    );
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_GroupContact_create', $mailchimp_list_id, $mailchimp_interest_groups);
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $contact_ids = array();
+    civimailchimp_static('contacts_added_to_group', array($contact->id));
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    civimailchimp_civicrm_post_GroupContact_create($mailchimp_sync_setting->civicrm_group_id, $contact_ids);
+    $item = $queue->claimItem();
+    $this->assertEquals('subscribeContactToMailchimpList', $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($params['email'][0]['email'], $item->data->arguments[2]);
+    $this->assertEquals($params['first_name'], $item->data->arguments[3]['FNAME']);
+    $this->assertEquals($params['last_name'], $item->data->arguments[3]['LNAME']);
+  }
+
+  function test_civimailchimp_civicrm_post_GroupContact_create_no_contacts() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_interest_groups = array(
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
+    );
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_GroupContact_create_no_contacts', $mailchimp_list_id, $mailchimp_interest_groups);
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $contact_ids = array();
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    civimailchimp_civicrm_post_GroupContact_create($mailchimp_sync_setting->civicrm_group_id, $contact_ids);
+    $this->assertEquals(0, $queue->numberOfItems());
+  }
+
   function test_civicrm_api3_civi_mailchimp_sync_exception() {
     $mailchimp_list_id = 'MailchimpListsTestListA';
     $mailchimp_interest_groups = array(

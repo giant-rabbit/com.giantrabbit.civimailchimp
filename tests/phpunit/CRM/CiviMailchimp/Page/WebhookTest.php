@@ -51,11 +51,31 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
     $sample_contact_data['email'] = $sample_upemail_data['old_email'];
     $sample_contact_data['merges']['EMAIL'] = $sample_upemail_data['old_email'];
     $contact = self::addContactFromSampleData($sample_contact_data);
-    $sync_settings = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('test_group_mailchimp_webhook_unsubscribe');
+
+    $sync_settings = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('test_group_mailchimp_webhook_upemail');
     CRM_Contact_BAO_GroupContact::addContactsToGroup(array($contact->id), $sync_settings->civicrm_group_id);
     CRM_CiviMailchimp_Page_Webhook::mailchimpWebhookUpemail($sample_upemail_data);
+
     $contact_details = CRM_Contact_BAO_Contact::getContactDetails($contact->id);
     $this->assertEquals($sample_upemail_data['new_email'], $contact_details[1]);
+  }
+
+  function testMailchimpWebhookProfile() {
+    $sample_data = self::sampleRequestSubscribeOrProfileUpdate();
+    $contact = self::addContactFromSampleData($sample_data);
+    $sync_settings = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('test_group_mailchimp_webhook_profile');
+    CRM_Contact_BAO_GroupContact::addContactsToGroup(array($contact->id), $sync_settings->civicrm_group_id);
+
+    $sample_new_data = self::sampleRequestSubscribeOrProfileUpdate();
+    $sample_data['merges']['FNAME'] = $sample_new_data['merges']['FNAME'];
+    $sample_data['merges']['LNAME'] = $sample_new_data['merges']['LNAME'];
+    CRM_CiviMailchimp_Page_Webhook::mailchimpWebhookProfile($sample_data);
+
+    $updated_contact = new CRM_Contact_BAO_Contact();
+    $updated_contact->id = $contact->id;
+    $updated_contact->find(TRUE);
+    $this->assertEquals($updated_contact->first_name, $sample_new_data['merges']['FNAME']);
+    $this->assertEquals($updated_contact->last_name, $sample_new_data['merges']['LNAME']);
   }
 
   static function addContactFromSampleData($sample_data) {

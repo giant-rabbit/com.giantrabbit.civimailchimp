@@ -15,7 +15,7 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
       }
       $function_name = 'self::mailchimpWebhook' . ucwords($request_type);
       if (is_callable($function_name)) {
-        // Set a canary to prevent CiviMailchimp hooks from firing, which 
+        // Set a canary to prevent CiviMailchimp hooks from firing, which
         // would trigger updates back to Mailchimp, resulting in an endless
         // loop.
         civimailchimp_static('mailchimp_webhook', TRUE);

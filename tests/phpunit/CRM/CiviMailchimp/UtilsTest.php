@@ -204,7 +204,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($mailchimp_sync_setting->civicrm_group_id, $contact->id);
     $this->assertTrue($contact_added_to_group);
     // Test that the contact is in the group (contactAddedToGroup returns FALSE)
-    $contact_ids = array($contact->id,);
+    $contact_ids = array($contact->id);
     CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
     $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($mailchimp_sync_setting->civicrm_group_id, $contact->id);
     $this->assertFalse($contact_added_to_group);

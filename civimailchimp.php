@@ -121,11 +121,11 @@ function civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form
 /**
  * Implementation of hook_civicrm_postProcess for the Group Edit form.
  */
-function civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit(&$form) {
+function civimailchimp_civicrm_postProcess($formName, &$form) {
   // If the Mailchimp API call fails, the mailchimp_list field will not be
   // added to the form, so we want to retain the existing Mailchimp List
   // sync settings for the group, if the group is edited.
-  if (isset($form->_elementIndex['mailchimp_list'])) {
+  if ($formName === "CRM_Group_Form_Edit" && isset($form->_elementIndex['mailchimp_list'])) {
     $params['civicrm_group_id'] = $form->getVar('_id');
     // When creating a new group, the group ID is only accessible from the
     // 'amtgID' session variable.
@@ -311,16 +311,6 @@ function civimailchimp_civicrm_post_Group_delete($group_id, &$group) {
   $mailchimp_sync_settings = civimailchimp_static('mailchimp_sync_settings');
   if ($mailchimp_sync_settings) {
     CRM_CiviMailchimp_Utils::deleteWebhookFromMailchimpList($mailchimp_sync_settings->mailchimp_list_id);
-  }
-}
-
-/**
- * Implementation of hook_civicrm_postProcess
- */
-function civimailchimp_civicrm_postProcess($formName, &$form) {
-  $function_name = "civimailchimp_civicrm_postProcess_{$formName}";
-  if (is_callable($function_name)) {
-    call_user_func($function_name, &$form);
   }
 }
 

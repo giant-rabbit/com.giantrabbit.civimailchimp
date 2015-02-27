@@ -362,14 +362,15 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $this->assertEmpty($errors);
   }
 
-  function test_civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit() {
+  function test_civimailchimp_civicrm_postProcess() {
     $mailchimp_list_id = 'MailchimpListsTestListA';
     $mailchimp_interest_groups = array(
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $group_name = 'Test Group civicrm_postProcess_CRM_Group_Form_Edit';
+    $group_name = 'Test Group civicrm_postProcess';
     $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
+    $formName = 'CRM_Group_Form_Edit';
     $form = $this->getMock('CRM_Core_Form');
     $form->expects($this->once())
       ->method('getVar')
@@ -382,7 +383,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
       'mailchimp_list' => $mailchimp_list_id,
       'mailchimp_interest_groups' => $mailchimp_interest_groups,
     );
-    civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit($form);
+    civimailchimp_civicrm_postProcess($formName, $form);
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($group_id);
     $this->assertEquals($group_id, $mailchimp_sync_setting->civicrm_group_id);
     $this->assertEquals('MailchimpListsTestListA', $mailchimp_sync_setting->mailchimp_list_id);
@@ -391,7 +392,8 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $this->assertEquals('MailchimpTestInterestGroupC', $mailchimp_sync_setting->mailchimp_interest_groups['MailchimpTestInterestGroupingA'][1]->mailchimp_interest_group_id);
   }
 
-  function test_civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit_element_not_set() {
+  function test_civimailchimp_civicrm_postProcess_different_formName() {
+    $formName = 'CRM_Group_Form_Edits';
     $form = $this->getMock('CRM_Core_Form');
     $form->expects($this->never())
       ->method('getVar')
@@ -399,10 +401,23 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $form->expects($this->never())
       ->method('get')
       ->will($this->returnValue(TRUE));
-    civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit($form);
+    $form->_elementIndex['mailchimp_list'] = TRUE;
+    civimailchimp_civicrm_postProcess($formName, $form);
   }
 
-  function test_civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit_id_not_set() {
+  function test_civimailchimp_civicrm_postProcess_element_not_set() {
+    $formName = 'CRM_Group_Form_Edit';
+    $form = $this->getMock('CRM_Core_Form');
+    $form->expects($this->never())
+      ->method('getVar')
+      ->will($this->returnValue(TRUE));
+    $form->expects($this->never())
+      ->method('get')
+      ->will($this->returnValue(TRUE));
+    civimailchimp_civicrm_postProcess($formName, $form);
+  }
+
+  function test_civimailchimp_civicrm_postProcess_id_not_set() {
     $mailchimp_list_id = 'MailchimpListsTestListA';
     $mailchimp_interest_groups = array(
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
@@ -410,6 +425,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     );
     $group_name = 'Test Group CRM_Group_Form_Edit_id_not_set';
     $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
+    $formName = 'CRM_Group_Form_Edit';
     $form = $this->getMock('CRM_Core_Form');
     $form->expects($this->once())
       ->method('getVar')
@@ -422,13 +438,14 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
       'mailchimp_list' => $mailchimp_list_id,
       'mailchimp_interest_groups' => $mailchimp_interest_groups,
     );
-    civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit($form);
+    civimailchimp_civicrm_postProcess($formName, $form);
   }
 
-  function test_civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit_no_interest_groups() {
+  function test_civimailchimp_civicrm_postProcess_no_interest_groups() {
     $mailchimp_list_id = 'MailchimpListsTestListA';
     $group_name = 'Test Group postProcess_CRM_Group_Form_Edit_no_interest_groups';
     $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
+    $formName = 'CRM_Group_Form_Edit';
     $form = $this->getMock('CRM_Core_Form');
     $form->expects($this->once())
       ->method('getVar')
@@ -440,20 +457,21 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $form->_submitValues = array(
       'mailchimp_list' => $mailchimp_list_id,
     );
-    civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit($form);
+    civimailchimp_civicrm_postProcess($formName, $form);
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($group_id);
     $this->assertEquals($group_id, $mailchimp_sync_setting->civicrm_group_id);
     $this->assertEquals('MailchimpListsTestListA', $mailchimp_sync_setting->mailchimp_list_id);
     $this->assertEmpty($mailchimp_sync_setting->mailchimp_interest_groups);
   }
 
-  function test_civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit_no_list() {
+  function test_civimailchimp_civicrm_postProcess_no_list() {
     $mailchimp_list_id = 'MailchimpListsTestListA';
     $mailchimp_interest_groups = array(
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group postProcess_CRM_Group_Form_Edit_no_list', $mailchimp_list_id, $mailchimp_interest_groups);
+    $formName = 'CRM_Group_Form_Edit';
     $form = $this->getMock('CRM_Core_Form');
     $form->expects($this->once())
       ->method('getVar')
@@ -465,7 +483,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $form->_submitValues = array(
       'mailchimp_list' => NULL,
     );
-    civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit($form);
+    civimailchimp_civicrm_postProcess($formName, $form);
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($mailchimp_sync_setting->civicrm_group_id);
     $this->assertEmpty($mailchimp_sync_setting);
   }

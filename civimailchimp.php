@@ -97,26 +97,6 @@ function civimailchimp_civicrm_setDefaults(&$form, $mailchimp_sync_setting) {
 }
 
 /**
- * Get the default values for the Group edit form for Mailchimp Sync Settings.
- */
-function civimailchimp_get_default_sync_settings_for_group($mailchimp_sync_setting) {
-  $mailchimp_interest_groups_defaults = array();
-  if (!empty($mailchimp_sync_setting->mailchimp_interest_groups)) {
-    foreach ($mailchimp_sync_setting->mailchimp_interest_groups as $mailchimp_interest_grouping => $mailchimp_interest_groups) {
-      foreach ($mailchimp_interest_groups as $mailchimp_interest_group) {
-        $mailchimp_interest_groups_defaults[] = "{$mailchimp_interest_grouping}_{$mailchimp_interest_group->mailchimp_interest_group_id}";
-      }
-    }
-  }
-  $defaults = array(
-    'mailchimp_list' => $mailchimp_sync_setting->mailchimp_list_id,
-    'mailchimp_interest_groups' => $mailchimp_interest_groups_defaults,
-  );
-
-  return $defaults;
-}
-
-/**
  * Implementation of hook_civicrm_validateForm
  */
 function civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
@@ -166,6 +146,26 @@ function civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit(&$form) {
       }
     }
   }
+}
+
+/**
+ * Get the default values for the Group edit form for Mailchimp Sync Settings.
+ */
+function civimailchimp_get_default_sync_settings_for_group($mailchimp_sync_setting) {
+  $mailchimp_interest_groups_defaults = array();
+  if (!empty($mailchimp_sync_setting->mailchimp_interest_groups)) {
+    foreach ($mailchimp_sync_setting->mailchimp_interest_groups as $mailchimp_interest_grouping => $mailchimp_interest_groups) {
+      foreach ($mailchimp_interest_groups as $mailchimp_interest_group) {
+        $mailchimp_interest_groups_defaults[] = "{$mailchimp_interest_grouping}_{$mailchimp_interest_group->mailchimp_interest_group_id}";
+      }
+    }
+  }
+  $defaults = array(
+    'mailchimp_list' => $mailchimp_sync_setting->mailchimp_list_id,
+    'mailchimp_interest_groups' => $mailchimp_interest_groups_defaults,
+  );
+
+  return $defaults;
 }
 
 /**

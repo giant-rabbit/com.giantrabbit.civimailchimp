@@ -75,9 +75,7 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
     $sample_data['merges']['LNAME'] = $sample_new_data['merges']['LNAME'];
     CRM_CiviMailchimp_Page_Webhook::mailchimpWebhookProfile($sample_data);
 
-    $updated_contact = new CRM_Contact_BAO_Contact();
-    $updated_contact->id = $contact->id;
-    $updated_contact->find(TRUE);
+    $updated_contact = CRM_CiviMailchimp_Utils::getContactById($contact->id);
     $this->assertEquals($updated_contact->first_name, $sample_new_data['merges']['FNAME']);
     $this->assertEquals($updated_contact->last_name, $sample_new_data['merges']['LNAME']);
   }

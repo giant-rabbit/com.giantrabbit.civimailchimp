@@ -3,7 +3,7 @@
 require_once 'vendor/autoload.php';
 
 class CRM_CiviMailchimp_Utils {
-  
+
   /**
    * Begin a connection with the Mailchimp API service and return the API
    * object.
@@ -26,7 +26,7 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
-   * Get all of the lists with corresponding interest groups from Mailchimp 
+   * Get all of the lists with corresponding interest groups from Mailchimp
    * and optionally allow filtering for specific lists.
    */
   static function getLists($list_ids = array()) {
@@ -73,7 +73,7 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
-   * Format the array of Mailchimp lists returned from getLists() into a 
+   * Format the array of Mailchimp lists returned from getLists() into a
    * select field options array.
    */
   static function formatListsAsSelectOptions($mailchimp_lists) {
@@ -112,7 +112,7 @@ class CRM_CiviMailchimp_Utils {
       'FNAME' => 'first_name',
       'LNAME' => 'last_name',
     );
-    $custom_merge_fields = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_merge_fields'); 
+    $custom_merge_fields = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_merge_fields');
     if ($custom_merge_fields) {
       if ($list_id && isset($custom_merge_fields[$list_id])) {
         $merge_fields = $custom_merge_fields[$list_id];
@@ -351,7 +351,7 @@ class CRM_CiviMailchimp_Utils {
     $email = new CRM_Core_BAO_Email();
     $email->id = $email_id;
     if (!$email->find(TRUE)) {
-      throw new CRM_Core_Exception("Could not find Email record with ID {$contact_id}");
+      throw new CRM_Core_Exception("Could not find Email record with ID {$email_id}");
     }
     return $email;
   }

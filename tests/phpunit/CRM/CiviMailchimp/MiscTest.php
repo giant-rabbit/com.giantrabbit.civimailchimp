@@ -259,7 +259,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $form->expects($this->once())
       ->method('setDefaults')
       ->will($this->returnValue(TRUE));
-    civimailchimp_civicrm_setDefaults(&$form, $mailchimp_sync_setting);
+    civimailchimp_civicrm_setDefaults($form, $mailchimp_sync_setting);
   }
 
   function test_civimailchimp_get_default_sync_settings_for_group() {
@@ -306,7 +306,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
       ->method('getVar')
       ->will($this->returnValue($mailchimp_sync_setting->civicrm_group_id));
     $errors = array();
-    civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors);
+    civimailchimp_civicrm_validateForm($formName, $fields, $files, $form, $errors);
     $this->assertEmpty($errors);
   }
 
@@ -320,7 +320,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
       ->method('getVar')
       ->will($this->returnValue(TRUE));
     $errors = array();
-    civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors);
+    civimailchimp_civicrm_validateForm($formName, $fields, $files, $form, $errors);
     $this->assertEmpty($errors);
   }
 
@@ -339,7 +339,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
       ->method('getVar')
       ->will($this->returnValue(999999999));
     $errors = array();
-    civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors);
+    civimailchimp_civicrm_validateForm($formName, $fields, $files, $form, $errors);
     $this->assertEquals("Another CiviCRM Group is already configured to sync to this Mailchimp list. Please select another list.", $errors['mailchimp_list']);
   }
 
@@ -358,7 +358,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
       ->method('getVar')
       ->will($this->returnValue(TRUE));
     $errors = array();
-    civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors);
+    civimailchimp_civicrm_validateForm($formName, $fields, $files, $form, $errors);
     $this->assertEmpty($errors);
   }
 
@@ -567,6 +567,25 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $this->assertEquals(0, $queue->numberOfItems());
   }
 
+  function test_civimailchimp_civicrm_post_GroupContact_delete() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_GroupContact_delete', $mailchimp_list_id);
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $contact_ids = array($contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    civimailchimp_civicrm_post_GroupContact_delete($mailchimp_sync_setting->civicrm_group_id, $contact_ids);
+    $item = $queue->claimItem();
+    $this->assertEquals('unsubscribeContactFromMailchimpList', $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($params['email'][0]['email'], $item->data->arguments[2]);
+  }
+
   function test_civimailchimp_civicrm_pre_Email() {
     $op = 'edit';
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
@@ -575,7 +594,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $email_id = $contact->email[0]->id;
     $email['contact_id'] = $contact->id;
     civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
-    civimailchimp_civicrm_pre_Email($op, $email_id, &$email);
+    civimailchimp_civicrm_pre_Email($op, $email_id, $email);
     $old_contact_from_email = civimailchimp_static('old_contact_from_email');
     $this->assertEquals($contact->id, $old_contact_from_email->id);
   }
@@ -588,7 +607,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $email_id = $contact->email[0]->id;
     $email['contact_id'] = NULL;
     civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
-    civimailchimp_civicrm_pre_Email($op, $email_id, &$email);
+    civimailchimp_civicrm_pre_Email($op, $email_id, $email);
     $old_contact_from_email = civimailchimp_static('old_contact_from_email');
     $this->assertEquals($contact->id, $old_contact_from_email->id);
   }
@@ -602,14 +621,14 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $email['contact_id'] = $contact->id;
     civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
     civimailchimp_static('old_contact', $contact);
-    civimailchimp_civicrm_pre_Email($op, $email_id, &$email);
+    civimailchimp_civicrm_pre_Email($op, $email_id, $email);
     $old_contact_from_email = civimailchimp_static('old_contact_from_email');
     $this->assertEmpty($old_contact_from_email);
   }
 
   function test_civimailchimp_civicrm_post_Email() {
     $mailchimp_list_id = 'MailchimpListsTestListA';
-    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_contact_removed_from_group_email_changed', $mailchimp_list_id);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_Email', $mailchimp_list_id);
     $op = 'edit';
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact_created = CRM_Contact_BAO_Contact::create($params);
@@ -626,12 +645,127 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
       'name' => 'mailchimp-sync',
       'reset' => TRUE,
     ));
-    civimailchimp_civicrm_post_Email($op, $email_id, &$email);
+    civimailchimp_civicrm_post_Email($op, $email_id, $email);
     $item = $queue->claimItem();
     $this->assertEquals('updateContactProfileInMailchimp', $item->data->arguments[0]);
     $this->assertEquals($mailchimp_list_id, $item->data->arguments[1]);
     $this->assertEquals($contact->email[0]->email, $item->data->arguments[2]);
     $this->assertEquals($params['email'][0]['email'], $item->data->arguments[3]['new-email']);
+  }
+
+  function test_civimailchimp_civicrm_post_Email_no_old_contact() {
+    $op = 'edit';
+    $email_id = NULL;
+    $email = array();
+    civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    civimailchimp_civicrm_post_Email($op, $email_id, $email);
+    $this->assertEquals(0, $queue->numberOfItems());
+  }
+
+  function test_civimailchimp_civicrm_pre_Contact_edit() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    civimailchimp_civicrm_pre_Contact_edit($contact->id, $contact);
+    $old_contact = civimailchimp_static('old_contact');
+    $this->assertEquals($contact->id, $old_contact->id);
+  }
+
+  function test_civimailchimp_civicrm_post_Contact_edit() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_Contact_edit', $mailchimp_list_id);
+    $old_contact_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $old_contact_created = CRM_Contact_BAO_Contact::create($old_contact_params);
+    $old_contact = CRM_CiviMailchimp_Utils::getContactById($old_contact_created->id);
+    $new_contact_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $new_contact_params['contact_id'] = $old_contact->id;
+    $new_contact_created = CRM_Contact_BAO_Contact::create($new_contact_params);
+    $new_contact = CRM_CiviMailchimp_Utils::getContactById($new_contact_created->id);
+    $contact_ids = array($old_contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
+    civimailchimp_static('old_contact', $old_contact);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    civimailchimp_civicrm_post_Contact_edit($new_contact->id, $new_contact);
+    $item = $queue->claimItem();
+    $this->assertEquals('updateContactProfileInMailchimp', $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($old_contact->email[0]->email, $item->data->arguments[2]);
+    $this->assertEquals($new_contact->email[0]->email, $item->data->arguments[3]['new-email']);
+  }
+
+  function test_civimailchimp_civicrm_post_Contact_delete() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_Contact_delete', $mailchimp_list_id);
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $contact_ids = array($contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    civimailchimp_civicrm_post_Contact_delete($contact->id, $contact);
+    $item = $queue->claimItem();
+    $this->assertEquals('unsubscribeContactFromMailchimpList', $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($params['email'][0]['email'], $item->data->arguments[2]);
+  }
+
+  function test_civimailchimp_civicrm_pre_Group_delete() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_interest_groups = array(
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
+    );
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_pre_Group_delete', $mailchimp_list_id, $mailchimp_interest_groups);
+    $group = array();
+    civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
+    civimailchimp_civicrm_pre_Group_delete($mailchimp_sync_setting->civicrm_group_id, $group);
+    $static_mailchimp_sync_setting = civimailchimp_static('mailchimp_sync_settings');
+    $this->assertEquals($mailchimp_sync_setting->id, $static_mailchimp_sync_setting->id);
+    $this->assertEquals($mailchimp_sync_setting->civicrm_group_id, $static_mailchimp_sync_setting->civicrm_group_id);
+    $this->assertEquals($mailchimp_sync_setting->mailchimp_list_id, $static_mailchimp_sync_setting->mailchimp_list_id);
+  }
+
+  function test_civimailchimp_civicrm_pre_Group_delete_no_sync_settings() {
+    $group_name = 'Test Group test_civimailchimp_civicrm_pre_Group_delete_no_sync';
+    $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
+    $group = array();
+    civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
+    civimailchimp_civicrm_pre_Group_delete($group_id, $group);
+    $static_mailchimp_sync_setting = civimailchimp_static('mailchimp_sync_settings');
+    $this->assertEmpty($static_mailchimp_sync_setting);
+  }
+
+  function test_civimailchimp_civicrm_post_Group_delete() {
+    $this->markTestIncomplete('This test is not finished yet.');
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_interest_groups = array(
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
+    );
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_Group_delete', $mailchimp_list_id, $mailchimp_interest_groups);
+    civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
+    civimailchimp_static('mailchimp_sync_settings', $mailchimp_sync_setting);
+    $group = array();
+    $mailchimp = new CRM_MailchimpMock();
+    $lists = $this->getMockBuilder('CRM_MailchimpMock_ListsMock')
+      ->setConstructorArgs(array($mailchimp))
+      ->getMock();
+    $lists->expects($this->once())
+      ->method('webhookDel')
+      ->will($this->returnValue(TRUE));
+    civimailchimp_civicrm_post_Group_delete($mailchimp_sync_setting->civicrm_group_id, $group);
   }
 
   function test_civicrm_api3_civi_mailchimp_sync_exception() {

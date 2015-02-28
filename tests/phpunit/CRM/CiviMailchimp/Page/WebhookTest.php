@@ -58,7 +58,7 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
 
     $email2 = new CRM_Core_BAO_Email();
     $email2->contact_id = $contact->id;
-    $email2->email = 'civimailchimp_upemail_test' + rand() . '@civimailchimp.org';
+    $email2->email = 'civimailchimp_upemail_test' . rand() . '@civimailchimp.org';
     $email2->save();
 
     $sync_settings = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('test_group_mailchimp_webhook_upemail');
@@ -95,7 +95,7 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
 
     $email2 = new CRM_Core_BAO_Email();
     $email2->contact_id = $contact->id;
-    $email2->email = 'civimailchimp_upemail_test' + rand() . '@civimailchimp.org';
+    $email2->email = 'civimailchimp_cleaned_test' . rand() . '@civimailchimp.org';
     $email2->save();
 
     $clean_request = self::getCleanRequestFromSampleProfileData($sample_data);
@@ -114,14 +114,6 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
         'FNAME' => "Civi{$rand}",
         'LNAME' => "Mailchimp{$rand}",
       ),
-      'list_id' => 'MailchimpListsTestListA',
-    );
-  }
-
-  static function sampleRequestUnsubscribeOrCleaned() {
-    $rand = rand();
-    return array(
-      'email' => "civimailchimp_test+{$rand}@civimailchimp.org",
       'list_id' => 'MailchimpListsTestListA',
     );
   }

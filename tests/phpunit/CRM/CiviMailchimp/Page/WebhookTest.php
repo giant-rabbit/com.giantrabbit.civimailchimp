@@ -31,7 +31,7 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
     $this->assertTrue(CRM_Contact_BAO_GroupContact::isContactInGroup($new_contact->contact_id, $sync_settings->civicrm_group_id));
 
     $sample_data = self::sampleRequestSubscribeOrProfileUpdate();
-    $initial_contact = self::addContactFromSampleData($sample_data);
+    $initial_contact = CRM_CiviMailchimp_Utils::createContactFromMailchimpRequest($sample_data);
     CRM_CiviMailchimp_Page_Webhook::mailchimpWebhookSubscribe($sample_data);
     $this->assertTrue(CRM_Contact_BAO_GroupContact::isContactInGroup($initial_contact->id, $sync_settings->civicrm_group_id));
   }
@@ -39,7 +39,7 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
   function testMailchimpWebhookUnsubscribe() {
     $sync_settings = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('test_group_mailchimp_webhook_unsubscribe');
     $sample_data = self::sampleRequestSubscribeOrProfileUpdate();
-    $contact = self::addContactFromSampleData($sample_data);
+    $contact = CRM_CiviMailchimp_Utils::createContactFromMailchimpRequest($sample_data);
     CRM_Contact_BAO_GroupContact::addContactsToGroup(array($contact->id), $sync_settings->civicrm_group_id);
     CRM_CiviMailchimp_Page_Webhook::mailchimpWebhookUnsubscribe($sample_data);
     $this->assertFalse(CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $sync_settings->civicrm_group_id));
@@ -50,7 +50,7 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
     $sample_upemail_data = self::sampleRequestUpemail();
     $sample_contact_data['email'] = $sample_upemail_data['old_email'];
     $sample_contact_data['merges']['EMAIL'] = $sample_upemail_data['old_email'];
-    $contact = self::addContactFromSampleData($sample_contact_data);
+    $contact = CRM_CiviMailchimp_Utils::createContactFromMailchimpRequest($sample_contact_data);
 
     $sync_settings = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('test_group_mailchimp_webhook_upemail');
     CRM_Contact_BAO_GroupContact::addContactsToGroup(array($contact->id), $sync_settings->civicrm_group_id);
@@ -62,7 +62,7 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
 
   function testMailchimpWebhookProfile() {
     $sample_data = self::sampleRequestSubscribeOrProfileUpdate();
-    $contact = self::addContactFromSampleData($sample_data);
+    $contact = CRM_CiviMailchimp_Utils::createContactFromMailchimpRequest($sample_data);
     $sync_settings = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('test_group_mailchimp_webhook_profile');
     CRM_Contact_BAO_GroupContact::addContactsToGroup(array($contact->id), $sync_settings->civicrm_group_id);
 
@@ -78,20 +78,15 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
     $this->assertEquals($updated_contact->last_name, $sample_new_data['merges']['LNAME']);
   }
 
-  static function addContactFromSampleData($sample_data) {
-    $params = array(
-      'first_name' => $sample_data['merges']['FNAME'],
-      'last_name' => $sample_data['merges']['LNAME'],
-      'contact_type' => 'Individual',
-      'do_not_email' => FALSE,
-    );
-    $contact = CRM_Contact_BAO_Contact::add($params);
-    $primary_email = new CRM_Core_BAO_Email();
-    $primary_email->contact_id = $contact->id;
-    $primary_email->email = $sample_data['email'];
-    $primary_email->is_primary = TRUE;
-    $primary_email->save();
-    return $contact;
+  function testMailchimpWebhookCleaned() {
+    $sample_data = self::sampleRequestSubscribeOrProfileUpdate();
+    $contact = CRM_CiviMailchimp_Utils::createContactFromMailchimpRequest($sample_data);
+    $sync_settings = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('test_group_mailchimp_webhook_cleaned');
+    CRM_Contact_BAO_GroupContact::addContactsToGroup(array($contact->id), $sync_settings->civicrm_group_id);
+    $clean_request = self::getCleanRequestFromSampleProfileData($sample_data);
+    CRM_CiviMailchimp_Page_Webhook::mailchimpWebhookCleaned($clean_request);
+    $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactById($contact->id);
+    $this->assertEquals($mailchimp_contact->email[0]->on_hold, 1);
   }
 
   static function sampleRequestSubscribeOrProfileUpdate() {
@@ -112,6 +107,13 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
     return array(
       'email' => "civimailchimp_test+{$rand}@civimailchimp.org",
       'list_id' => 'MailchimpListsTestListA',
+    );
+  }
+
+  static function getCleanRequestFromSampleProfileData($profile_data) {
+    return array(
+      'email' => $profile_data['email'],
+      'list_id' => $profile_data['list_id'],
     );
   }
 

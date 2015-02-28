@@ -97,26 +97,6 @@ function civimailchimp_civicrm_setDefaults(&$form, $mailchimp_sync_setting) {
 }
 
 /**
- * Get the default values for the Group edit form for Mailchimp Sync Settings.
- */
-function civimailchimp_get_default_sync_settings_for_group($mailchimp_sync_setting) {
-  $mailchimp_interest_groups_defaults = array();
-  if (!empty($mailchimp_sync_setting->mailchimp_interest_groups)) {
-    foreach ($mailchimp_sync_setting->mailchimp_interest_groups as $mailchimp_interest_grouping => $mailchimp_interest_groups) {
-      foreach ($mailchimp_interest_groups as $mailchimp_interest_group) {
-        $mailchimp_interest_groups_defaults[] = "{$mailchimp_interest_grouping}_{$mailchimp_interest_group->mailchimp_interest_group_id}";
-      }
-    }
-  }
-  $defaults = array(
-    'mailchimp_list' => $mailchimp_sync_setting->mailchimp_list_id,
-    'mailchimp_interest_groups' => $mailchimp_interest_groups_defaults,
-  );
-
-  return $defaults;
-}
-
-/**
  * Implementation of hook_civicrm_validateForm
  */
 function civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
@@ -141,11 +121,11 @@ function civimailchimp_civicrm_validateForm($formName, &$fields, &$files, &$form
 /**
  * Implementation of hook_civicrm_postProcess for the Group Edit form.
  */
-function civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit(&$form) {
+function civimailchimp_civicrm_postProcess($formName, &$form) {
   // If the Mailchimp API call fails, the mailchimp_list field will not be
   // added to the form, so we want to retain the existing Mailchimp List
   // sync settings for the group, if the group is edited.
-  if (isset($form->_elementIndex['mailchimp_list'])) {
+  if ($formName === "CRM_Group_Form_Edit" && isset($form->_elementIndex['mailchimp_list'])) {
     $params['civicrm_group_id'] = $form->getVar('_id');
     // When creating a new group, the group ID is only accessible from the
     // 'amtgID' session variable.
@@ -166,6 +146,26 @@ function civimailchimp_civicrm_postProcess_CRM_Group_Form_Edit(&$form) {
       }
     }
   }
+}
+
+/**
+ * Get the default values for the Group edit form for Mailchimp Sync Settings.
+ */
+function civimailchimp_get_default_sync_settings_for_group($mailchimp_sync_setting) {
+  $mailchimp_interest_groups_defaults = array();
+  if (!empty($mailchimp_sync_setting->mailchimp_interest_groups)) {
+    foreach ($mailchimp_sync_setting->mailchimp_interest_groups as $mailchimp_interest_grouping => $mailchimp_interest_groups) {
+      foreach ($mailchimp_interest_groups as $mailchimp_interest_group) {
+        $mailchimp_interest_groups_defaults[] = "{$mailchimp_interest_grouping}_{$mailchimp_interest_group->mailchimp_interest_group_id}";
+      }
+    }
+  }
+  $defaults = array(
+    'mailchimp_list' => $mailchimp_sync_setting->mailchimp_list_id,
+    'mailchimp_interest_groups' => $mailchimp_interest_groups_defaults,
+  );
+
+  return $defaults;
 }
 
 /**
@@ -315,20 +315,10 @@ function civimailchimp_civicrm_post_Group_delete($group_id, &$group) {
 }
 
 /**
- * Implementation of hook_civicrm_postProcess
- */
-function civimailchimp_civicrm_postProcess($formName, &$form) {
-  $function_name = "civimailchimp_civicrm_postProcess_{$formName}";
-  if (is_callable($function_name)) {
-    call_user_func($function_name, &$form);
-  }
-}
-
-/**
  * Implementation of hook_civicrm_pre
  */
 function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
-  if (!civimailchimp_static('mailchimp_webhook')) {
+  if (!civimailchimp_static('mailchimp_do_not_run_hooks')) {
     if ($object_name === "Individual" || $object_name === "Organization") {
       $object_name = "Contact";
     }
@@ -347,7 +337,7 @@ function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
  * Implementation of hook_civicrm_post
  */
 function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
-  if (!civimailchimp_static('mailchimp_webhook')) {
+  if (!civimailchimp_static('mailchimp_do_not_run_hooks')) {
     if ($object_name === "Individual" || $object_name === "Organization") {
       $object_name = "Contact";
     }

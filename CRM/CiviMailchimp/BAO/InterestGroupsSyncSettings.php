@@ -17,6 +17,27 @@ class CRM_CiviMailchimp_BAO_InterestGroupsSyncSettings extends CRM_CiviMailchimp
     return $interest_groups;
   }
 
+  static function saveSettings($mailchimp_sync_setting, $interest_groups) {
+    // Get the interest groups from Mailchimp again so we can associate a
+    // name with the interest group id.
+    $mailchimp_interest_groups = CRM_CiviMailchimp_Utils::getInterestGroups($mailchimp_sync_setting->mailchimp_list_id);
+    foreach ($interest_groups as $interest_group) {
+      $interest_group = explode('_', $interest_group);
+      $interest_grouping_id = $interest_group[0];
+      $interest_group_id = $interest_group[1];
+      // Mailchimp expects the interest group name rather than id when
+      // making API subscription requests. However, since the name can be
+      // changed and is not unique, we're storing both the id and name.
+      $interest_group_name = $mailchimp_interest_groups[$interest_grouping_id][$interest_group_id];
+      $mailchimp_interest_group_sync_setting = new CRM_CiviMailchimp_BAO_InterestGroupsSyncSettings();
+      $mailchimp_interest_group_sync_setting->civimailchimp_sync_settings_id = $mailchimp_sync_setting->id;
+      $mailchimp_interest_group_sync_setting->mailchimp_interest_grouping_id = $interest_grouping_id;
+      $mailchimp_interest_group_sync_setting->mailchimp_interest_group_id = $interest_group_id;
+      $mailchimp_interest_group_sync_setting->mailchimp_interest_group_name = $interest_group_name;
+      $mailchimp_interest_group_sync_setting->save();
+    }
+  }
+
   static function deleteAllForSyncSettingsId($sync_settings_id) {
     $query = "
       DELETE FROM

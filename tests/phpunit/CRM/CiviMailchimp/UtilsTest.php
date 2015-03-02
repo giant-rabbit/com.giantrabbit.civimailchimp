@@ -308,6 +308,33 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertEquals($email, $mailchimp_contact->email[0]->email);
   }
 
+  function testGetEmailbyIdException() {
+    $invalid_email_id = '99999999999999999';
+    $this->setExpectedException('CRM_Core_Exception', "Could not find Email record with ID {$invalid_email_id}");
+    CRM_CiviMailchimp_Utils::getEmailbyId($invalid_email_id);
+  }
+
+  function testGetEmailbyId() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $email = $params['email'][0]['email'];
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $contact_email_id = $contact->email[0]->id;
+    $returned_email = CRM_CiviMailchimp_Utils::getEmailbyId($contact_email_id);
+    $this->assertEquals($email, $returned_email->email); 
+  }
+
+  function testGetGroupByIdException() {
+    $invalid_group_id = '99999999999999999';
+    $this->setExpectedException('CRM_Core_Exception', "Could not find Group record with ID {$invalid_group_id}");
+    CRM_CiviMailchimp_Utils::getGroupById($invalid_group_id);
+  }
+
+  function testGetGroupById() {
+    $group = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testGetGroupById'); 
+    $returned_group = CRM_CiviMailchimp_Utils::getGroupById($group->id);
+    $this->assertEquals('Test group testGetGroupById', $returned_group->name);
+  }
+
   function testAddWebhookToMailchimpList() {
     $result = CRM_CiviMailchimp_Utils::addWebhookToMailchimpList('MailchimpListsTestListA');
     $this->assertEquals('MailchimpTestWebhookA', $result['id']);

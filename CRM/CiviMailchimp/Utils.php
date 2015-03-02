@@ -345,7 +345,7 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
-   * Get an Email for a given email id.
+   * Get an Email DAO object for a given email id.
    */
   static function getEmailbyId($email_id) {
     $email = new CRM_Core_BAO_Email();

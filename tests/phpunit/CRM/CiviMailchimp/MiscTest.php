@@ -22,7 +22,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     // the tests slower and opens the door for writing test that aren't self-
     // sufficient, but we're forced into this as CiviUnitTestCase forces a 
     // quickCleanup on civicrm_contact in its tearDown. :(
-    $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item'));
+    $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item', 'civimailchimp_sync_settings', 'civimailchimp_interest_groups_sync_settings'));
     civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
     parent::tearDown();
   }
@@ -796,7 +796,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $op = 'delete';
     $object_name = 'Individual';
     $mailchimp_list_id = 'MailchimpListsTestListA';
-    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_Contact_delete', $mailchimp_list_id);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_individual_delete', $mailchimp_list_id);
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);
     $contact_ids = array($contact->id);
@@ -815,7 +815,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
 
   function test_civimailchimp_civicrm_post_email_no_op() {
     $mailchimp_list_id = 'MailchimpListsTestListA';
-    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_Email', $mailchimp_list_id);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_email_no_op', $mailchimp_list_id);
     $op = 'edit';
     $object_name = 'Email';
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();

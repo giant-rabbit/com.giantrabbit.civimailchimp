@@ -20,6 +20,7 @@ class CRM_CiviMailchimp_Page_WebhookTest extends CiviUnitTestCase {
   }
 
   function tearDown() {
+    $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item', 'civimailchimp_sync_settings', 'civimailchimp_interest_groups_sync_settings'));
     parent::tearDown();
   }
 

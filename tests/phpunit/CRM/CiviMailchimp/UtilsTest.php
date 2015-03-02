@@ -21,7 +21,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     // the tests slower and opens the door for writing test that aren't self-
     // sufficient, but we're forced into this as CiviUnitTestCase forces a 
     // quickCleanup on civicrm_contact in its tearDown. :(
-    $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item'));
+    $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item', 'civimailchimp_sync_settings', 'civimailchimp_interest_groups_sync_settings'));
     civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
     parent::tearDown();
   }

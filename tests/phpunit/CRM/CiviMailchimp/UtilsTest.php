@@ -330,43 +330,38 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   }
 
   function testGetGroupById() {
-    $group = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testGetGroupById'); 
-    $returned_group = CRM_CiviMailchimp_Utils::getGroupById($group->id);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testGetGroupById'); 
+    $civicrm_group_id = $mailchimp_sync_setting->civicrm_group_id;
+    $returned_group = CRM_CiviMailchimp_Utils::getGroupById($civicrm_group_id);
     $this->assertEquals('Test group testGetGroupById', $returned_group->name);
   }
 
   function testAddContactToGroup() {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);
-    $group = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testAddContactToGroup');
-    $civicrm_group_id = $group->civicrm_group_id;
-    $mailchimp_list_id = $group->mailchimp_list_id;
-    // Test that the contact is not in the group (contactAddedToGroup returns TRUE)
-    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($civicrm_group_id, $contact->id);
-    $this->assertTrue($contact_added_to_group);
-    // Test that the contact is in the group (contactAddedToGroup returns FALSE)
-    CRM_CiviMailchimp_Utils::addContactToGroup($contact, $mailchimp_list_id);
-    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($civicrm_group_id, $contact->id);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testAddContactToGroup');
+    // Test that the contact is not in the group
+    $contact_added_to_group = CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $mailchimp_sync_setting->civicrm_group_id);
     $this->assertFalse($contact_added_to_group);
+    // Test that the contact is in the group
+    CRM_CiviMailchimp_Utils::addContactToGroup($contact, $mailchimp_sync_setting->mailchimp_list_id);
+    $contact_added_to_group = CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $mailchimp_sync_setting->civicrm_group_id);
+    $this->assertTrue($contact_added_to_group);
   }
 
   function testRemoveContactFromGroup() {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);
-    $group = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testRemoveContactFromGroup');
-    $civicrm_group_id = $group->civicrm_group_id;
-    $mailchimp_list_id = $group->mailchimp_list_id;
-    // Test that the contact is not in the group (contactAddedToGroup returns TRUE)
-    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($civicrm_group_id, $contact->id);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testRemoveContactFromGroup');
+    // Test that the contact is in the group
+    $contact_ids = array($contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $contact_added_to_group = CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $mailchimp_sync_setting->civicrm_group_id);
     $this->assertTrue($contact_added_to_group);
-    // Test that the contact is in the group (contactAddedToGroup returns FALSE)
-    CRM_CiviMailchimp_Utils::addContactToGroup($contact, $mailchimp_list_id);
-    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($civicrm_group_id, $contact->id);
+    // Test that the contact is removed from the group
+    CRM_CiviMailchimp_Utils::removeContactFromGroup($contact, $mailchimp_sync_setting->mailchimp_list_id);
+    $contact_added_to_group = CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $mailchimp_sync_setting->civicrm_group_id);
     $this->assertFalse($contact_added_to_group);
-    // Test that the contact is removed from the group (contactAddedToGroup returns TRUE)
-    CRM_CiviMailchimp_Utils::removeContactFromGroup($contact, $mailchimp_list_id);
-    $contact_added_to_group = CRM_CiviMailchimp_Utils::contactAddedToGroup($civicrm_group_id, $contact->id);
-    $this->assertTrue($contact_added_to_group);
   }
 
   function testAddWebhookToMailchimpList() {

@@ -70,6 +70,7 @@ class CRM_MailchimpMock_ListsMock {
       $response = array(
         'email' => $email_address,
       );
+      civimailchimp_static('mailchimp_api_subscribe', TRUE);
 
       return $response;
     }

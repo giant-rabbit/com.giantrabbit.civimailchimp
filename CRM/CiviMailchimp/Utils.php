@@ -502,9 +502,8 @@ class CRM_CiviMailchimp_Utils {
    * We do this using Mailchimp Export API as the standard API has a 100 member
    * return limit: https://apidocs.mailchimp.com/export/1.0/list.func.php
    */
-  static function getAllMembersOfMailchimpList($list_id) {
-    $url = self::formatMailchimpExportApiUrl($list_id);
-    $file_path = self::retrieveMailchimpMemberExportFile($url, $list_id);
+  static function getAllMembersOfMailchimpList($mailchimp_export_url, $list_id) {
+    $file_path = self::retrieveMailchimpMemberExportFile($mailchimp_export_url, $list_id);
     $members = self::extractMembersFromMailchimpExportFile($file_path, $list_id);
     self::deleteMailchimpMemberExportFile($file_path);
 

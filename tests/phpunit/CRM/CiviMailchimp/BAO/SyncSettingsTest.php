@@ -90,7 +90,7 @@ class CRM_CiviMailchimp_BAO_SyncSettingsTest extends CiviUnitTestCase {
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
-    $existing_mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group testSaveSettings', $mailchimp_list_id, $mailchimp_interest_groups);
+    $existing_mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group testFindByContactIdNoSyncSettings', $mailchimp_list_id, $mailchimp_interest_groups);
     $params = array(
       'civicrm_group_id' => $existing_mailchimp_sync_setting->civicrm_group_id,
       'mailchimp_list_id' => 'MailchimpListsTestListB',

@@ -1,4 +1,4 @@
-CRM.$(function($) {
+cj(function($) {
   CRM.civiMailchimp.interestGroups = function() {
     this.initialize();
   }

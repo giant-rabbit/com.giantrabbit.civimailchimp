@@ -497,7 +497,6 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $this->assertEquals('There was an error when trying to retrieve available Mailchimp Lists to sync to a group. CRM_Core_Exception: An exception was thrown!.', $messages[0]['text']);
     $this->assertEquals('Mailchimp API Error', $messages[0]['title']);
     $this->assertEquals('alert', $messages[0]['type']);
-    $this->assertEquals(0, $messages[0]['options']['expires']);
   }
 
   function test_civimailchimp_civicrm_pre_GroupContact_create_not_in_group() {

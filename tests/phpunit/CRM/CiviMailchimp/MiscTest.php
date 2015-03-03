@@ -747,6 +747,27 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     $this->assertEmpty($static_mailchimp_sync_setting);
   }
 
+  function test_civimailchimp_civicrm_post_Group_delete() {
+    $this->markTestIncomplete('This test is not finished yet.');
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_interest_groups = array(
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
+      'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
+    );
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_Group_delete', $mailchimp_list_id, $mailchimp_interest_groups);
+    civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
+    civimailchimp_static('mailchimp_sync_settings', $mailchimp_sync_setting);
+    $group = array();
+    $mailchimp = new CRM_MailchimpMock();
+    $lists = $this->getMockBuilder('CRM_MailchimpMock_ListsMock')
+      ->setConstructorArgs(array($mailchimp))
+      ->getMock();
+    $lists->expects($this->once())
+      ->method('webhookDel')
+      ->will($this->returnValue(TRUE));
+    civimailchimp_civicrm_post_Group_delete($mailchimp_sync_setting->civicrm_group_id, $group);
+  }
+
   function test_civimailchimp_civicrm_pre_individual_edit() {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);

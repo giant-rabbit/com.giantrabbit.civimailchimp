@@ -158,6 +158,7 @@ class CRM_MailchimpMock_ListsMock {
         'name' => 'List_DoesNotExist',
       );
     }
+    civimailchimp_static('mailchimp_api_webhookDel', TRUE);
     return $response;
   }
 

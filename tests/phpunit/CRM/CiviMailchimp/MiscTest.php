@@ -748,24 +748,25 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
   }
 
   function test_civimailchimp_civicrm_post_Group_delete() {
-    $this->markTestIncomplete('This test is not finished yet.');
     $mailchimp_list_id = 'MailchimpListsTestListA';
     $mailchimp_interest_groups = array(
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupA',
       'MailchimpTestInterestGroupingA_MailchimpTestInterestGroupC',
     );
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_civimailchimp_civicrm_post_Group_delete', $mailchimp_list_id, $mailchimp_interest_groups);
-    civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
     civimailchimp_static('mailchimp_sync_settings', $mailchimp_sync_setting);
-    $group = array();
-    $mailchimp = new CRM_MailchimpMock();
-    $lists = $this->getMockBuilder('CRM_MailchimpMock_ListsMock')
-      ->setConstructorArgs(array($mailchimp))
-      ->getMock();
-    $lists->expects($this->once())
-      ->method('webhookDel')
-      ->will($this->returnValue(TRUE));
     civimailchimp_civicrm_post_Group_delete($mailchimp_sync_setting->civicrm_group_id, $group);
+    $mailchimp_api_webhookDel = civimailchimp_static('mailchimp_api_webhookDel');
+    $this->assertTrue($mailchimp_api_webhookDel);
+  }
+
+  function test_civimailchimp_civicrm_post_Group_delete_no_sync_settings() {
+    $group_name = 'Test Group test_civimailchimp_civicrm_post_Group_delete_no_sync';
+    $group_id = $this->groupCreate(array('name' => $group_name, 'title' => $group_name));
+    $group = array();
+    civimailchimp_civicrm_post_Group_delete($group_id, $group);
+    $mailchimp_api_webhookDel = civimailchimp_static('mailchimp_api_webhookDel');
+    $this->assertNull($mailchimp_api_webhookDel);
   }
 
   function test_civimailchimp_civicrm_pre_individual_edit() {

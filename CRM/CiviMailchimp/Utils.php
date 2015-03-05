@@ -265,7 +265,7 @@ class CRM_CiviMailchimp_Utils {
     $contact = new CRM_Contact_BAO_Contact();
     $contact->id = $contact_id;
     if (!$contact->find(TRUE)) {
-      throw new CRM_Core_Exception("Could not find Contact record with ID {$contact_id}");
+      throw new CRM_CiviMailchimp_Exception("Could not find Contact record with ID {$contact_id}");
     }
     $emails = new CRM_Core_BAO_Email();
     $emails->contact_id = $contact->id;
@@ -316,7 +316,7 @@ class CRM_CiviMailchimp_Utils {
       CRM_Core_Error::debug_log_message(ts('There are %1 Contacts with the email %2. In order to limit potential syncing issues with Mailchimp, it is recommended that all but one Contact have this email marked as On Hold or have the email type changed from being the Primary or Bulk Mailings email address.', array(1 => count($contacts), 2 => $email)));
     }
     if (empty($contacts) && $throw_exception) {
-      throw new CRM_Core_Exception("Could not find contact record with the email {$email}.");
+      throw new CRM_CiviMailchimp_Exception("Could not find contact record with the email {$email}.");
     }
 
     return $contacts;
@@ -338,7 +338,7 @@ class CRM_CiviMailchimp_Utils {
       }
     }
     if (!$mailchimp_contact) {
-      throw new CRM_Core_Exception("Contact record with email {$email} not found in group ID {$civicrm_group_id}.");
+      throw new CRM_CiviMailchimp_Exception("Contact record with email {$email} not found in group ID {$civicrm_group_id}.");
     }
 
     return $mailchimp_contact;
@@ -351,7 +351,7 @@ class CRM_CiviMailchimp_Utils {
     $email = new CRM_Core_BAO_Email();
     $email->id = $email_id;
     if (!$email->find(TRUE)) {
-      throw new CRM_Core_Exception("Could not find Email record with ID {$email_id}");
+      throw new CRM_CiviMailchimp_Exception("Could not find Email record with ID {$email_id}");
     }
     return $email;
   }
@@ -363,7 +363,7 @@ class CRM_CiviMailchimp_Utils {
     $group = new CRM_Contact_BAO_Group();
     $group->id = $group_id;
     if (!$group->find(TRUE)) {
-      throw new CRM_Core_Exception("Could not find Group record with ID {$group_id}");
+      throw new CRM_CiviMailchimp_Exception("Could not find Group record with ID {$group_id}");
     }
     return $group;
   }
@@ -428,7 +428,7 @@ class CRM_CiviMailchimp_Utils {
   static function getSiteKey() {
     $site_key = defined('CIVICRM_SITE_KEY') ? CIVICRM_SITE_KEY : NULL;
     if (!$site_key) {
-      throw new CRM_Core_Exception("You need to set a valid site key in civicrm.settings.php for Mailchimp to be able to communicate with CiviCRM using Mailchimp Webhooks.");
+      throw new CRM_CiviMailchimp_Exception("You need to set a valid site key in civicrm.settings.php for Mailchimp to be able to communicate with CiviCRM using Mailchimp Webhooks.");
     }
     return $site_key;
   }
@@ -531,13 +531,13 @@ class CRM_CiviMailchimp_Utils {
     $file_path = "{$temp_dir}mailchimp_export_{$list_id}_{$timestamp}.tmp";
     $file = fopen($file_path, 'w');
     if ($file === FALSE) {
-      throw new CRM_Core_Exception("Unable to open the temporary Mailchimp Export file located at {$file_path}.");
+      throw new CRM_CiviMailchimp_Exception("Unable to open the temporary Mailchimp Export file located at {$file_path}.");
     }
     $ch = curl_init($url);
     if ($ch === FALSE) {
       $err_number = curl_errno($ch);
       $err_string = curl_error($ch);
-      throw new CRM_Core_Exception("cURL failed to initiate for the url {$url}. cURL error # {$err_number}: {$err_string}.");
+      throw new CRM_CiviMailchimp_Exception("cURL failed to initiate for the url {$url}. cURL error # {$err_number}: {$err_string}.");
     }
     curl_setopt($ch, CURLOPT_TIMEOUT, 50);
     curl_setopt($ch, CURLOPT_FILE, $file);
@@ -546,7 +546,7 @@ class CRM_CiviMailchimp_Utils {
     if ($data === FALSE) {
       $err_number = curl_errno($ch);
       $err_string = curl_error($ch);
-      throw new CRM_Core_Exception("cURL failed to retrieve data from the url {$url}. cURL error # {$err_number}: {$err_string}.");
+      throw new CRM_CiviMailchimp_Exception("cURL failed to retrieve data from the url {$url}. cURL error # {$err_number}: {$err_string}.");
     }
     curl_close($ch);
     fclose($file);
@@ -560,7 +560,7 @@ class CRM_CiviMailchimp_Utils {
   static function extractMembersFromMailchimpExportFile($file_path, $list_id) {
     $file = fopen($file_path, 'r');
     if ($file === FALSE) {
-      throw new CRM_Core_Exception("Unable to access Mailchimp export file at the following path: {$file_path}");
+      throw new CRM_CiviMailchimp_Exception("Unable to access Mailchimp export file at the following path: {$file_path}");
     }
     $i = 0;
     $header = array();
@@ -568,15 +568,15 @@ class CRM_CiviMailchimp_Utils {
     while (!feof($file)) {
       $buffer = fgets($file, 4096);
       if ($buffer === FALSE && !feof($file)) {
-        throw new CRM_Core_Exception("There was an error reading the Mailchimp export file at the path {$file_path}: " . print_r(error_get_last(), TRUE));
+        throw new CRM_CiviMailchimp_Exception("There was an error reading the Mailchimp export file at the path {$file_path}: " . print_r(error_get_last(), TRUE));
       }
       if (trim($buffer) != ''){
         $row = json_decode($buffer);
         if ($row === NULL) {
-          throw new CRM_Core_Exception("Unable to decode JSON string from Mailchimp export file at {$file_path}: {$buffer}");
+          throw new CRM_CiviMailchimp_Exception("Unable to decode JSON string from Mailchimp export file at {$file_path}: {$buffer}");
         }
         if (!is_array($row) || count($row) < 3) {
-          throw new CRM_Core_Exception("Error processing the Mailchimp export file located at {$file_path}. The following record has less than the required number of items: " . print_r($row, TRUE));
+          throw new CRM_CiviMailchimp_Exception("Error processing the Mailchimp export file located at {$file_path}. The following record has less than the required number of items: " . print_r($row, TRUE));
         }
         // Ignore the header row.
         if ($i != 0) {
@@ -606,7 +606,7 @@ class CRM_CiviMailchimp_Utils {
   static function deleteMailchimpMemberExportFile($file_path) {
     $result = unlink($file_path);
     if (!$result) {
-      throw new CRM_Core_Exception("Unable to delete the temporary Mailchimp export file located at {$file_path}: " . print_r(error_get_last(), TRUE));
+      throw new CRM_CiviMailchimp_Exception("Unable to delete the temporary Mailchimp export file located at {$file_path}: " . print_r(error_get_last(), TRUE));
     }
 
     return $result;

@@ -181,6 +181,7 @@ class CRM_CiviMailchimp_DAO_InterestGroupsSyncSettings extends CRM_Core_DAO
         'mailchimp_interest_group_name' => array(
           'name' => 'mailchimp_interest_group_name',
           'type' => CRM_Utils_Type::T_STRING,
+          'title' => ts('Mailchimp Interest Group Name') ,
           'required' => false,
           'maxlength' => 255,
           'size' => CRM_Utils_Type::HUGE,

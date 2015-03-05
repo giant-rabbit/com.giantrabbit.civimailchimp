@@ -53,7 +53,7 @@ class CRM_CiviMailchimp_BAO_SyncSettingsTest extends CiviUnitTestCase {
 
   function testFindByListIdThrowException() {
     $mailchimp_list_id = 'MailchimpListsTestListA';
-    $this->setExpectedException('CRM_Core_Exception', "Could not find a CiviCRM Group configured to sync with Mailchimp List ID {$mailchimp_list_id}.");
+    $this->setExpectedException('CRM_CiviMailchimp_Exception', "Could not find a CiviCRM Group configured to sync with Mailchimp List ID {$mailchimp_list_id}.");
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($mailchimp_list_id);
   }
 

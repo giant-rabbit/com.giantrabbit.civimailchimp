@@ -27,7 +27,7 @@ class CRM_CiviMailchimp_BAO_SyncSettings extends CRM_CiviMailchimp_DAO_SyncSetti
     $mailchimp_sync_setting->find(TRUE);
     if (empty($mailchimp_sync_setting->id)) {
       if ($throw_exception) {
-        throw new CRM_Core_Exception("Could not find a CiviCRM Group configured to sync with Mailchimp List ID {$list_id}.");
+        throw new CRM_CiviMailchimp_Exception("Could not find a CiviCRM Group configured to sync with Mailchimp List ID {$list_id}.");
       }
       return NULL;
     }

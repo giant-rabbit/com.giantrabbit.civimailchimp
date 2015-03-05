@@ -489,12 +489,12 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
   }
 
   function test_civimailchimp_catch_mailchimp_api_error() {
-    $exception = new CRM_Core_Exception("An exception was thrown!");
+    $exception = new CRM_CiviMailchimp_Exception("An exception was thrown!");
     $session = CRM_Core_Session::singleton();
     $messages = $session->getStatus(TRUE);
     civimailchimp_catch_mailchimp_api_error($exception);
     $messages = $session->getStatus();
-    $this->assertEquals('There was an error when trying to retrieve available Mailchimp Lists to sync to a group. CRM_Core_Exception: An exception was thrown!.', $messages[0]['text']);
+    $this->assertEquals('There was an error when trying to retrieve available Mailchimp Lists to sync to a group. CRM_CiviMailchimp_Exception: An exception was thrown!.', $messages[0]['text']);
     $this->assertEquals('Mailchimp API Error', $messages[0]['title']);
     $this->assertEquals('alert', $messages[0]['type']);
   }

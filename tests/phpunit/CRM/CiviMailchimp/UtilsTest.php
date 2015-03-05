@@ -216,7 +216,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
 
   function testGetContactByIdException() {
     $invalid_contact_id = '99999999999999999';
-    $this->setExpectedException('CRM_Core_Exception', "Could not find Contact record with ID {$invalid_contact_id}");
+    $this->setExpectedException('CRM_CiviMailchimp_Exception', "Could not find Contact record with ID {$invalid_contact_id}");
     $returned_contact = CRM_CiviMailchimp_Utils::getContactById($invalid_contact_id);
     $this->assertEmpty($returned_contact);
   }
@@ -234,7 +234,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
   function testGetContactsWithPrimaryOrBulkEmailException() {
     $rand = rand();
     $email = "should_throw_exception{$rand}@exception.com";
-    $this->setExpectedException('CRM_Core_Exception', "Could not find contact record with the email {$email}.");
+    $this->setExpectedException('CRM_CiviMailchimp_Exception', "Could not find contact record with the email {$email}.");
     $contacts = CRM_CiviMailchimp_Utils::getContactsWithPrimaryOrBulkEmail($email, $throw_exception = TRUE);
     $this->assertEmpty($contacts);
   }
@@ -292,7 +292,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $email = $params['email'][0]['email'];
     $contact = CRM_Contact_BAO_Contact::create($params);
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testGetContactInMailchimpListByEmailException');
-    $this->setExpectedException('CRM_Core_Exception', "Contact record with email {$email} not found in group ID {$mailchimp_sync_setting->civicrm_group_id}.");
+    $this->setExpectedException('CRM_CiviMailchimp_Exception', "Contact record with email {$email} not found in group ID {$mailchimp_sync_setting->civicrm_group_id}.");
     $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($email, $mailchimp_sync_setting->mailchimp_list_id);
   }
 
@@ -310,7 +310,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
 
   function testGetEmailbyIdException() {
     $invalid_email_id = '99999999999999999';
-    $this->setExpectedException('CRM_Core_Exception', "Could not find Email record with ID {$invalid_email_id}");
+    $this->setExpectedException('CRM_CiviMailchimp_Exception', "Could not find Email record with ID {$invalid_email_id}");
     CRM_CiviMailchimp_Utils::getEmailbyId($invalid_email_id);
   }
 
@@ -325,7 +325,7 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
 
   function testGetGroupByIdException() {
     $invalid_group_id = '99999999999999999';
-    $this->setExpectedException('CRM_Core_Exception', "Could not find Group record with ID {$invalid_group_id}");
+    $this->setExpectedException('CRM_CiviMailchimp_Exception', "Could not find Group record with ID {$invalid_group_id}");
     CRM_CiviMailchimp_Utils::getGroupById($invalid_group_id);
   }
 

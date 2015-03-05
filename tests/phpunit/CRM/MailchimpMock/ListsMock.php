@@ -75,7 +75,7 @@ class CRM_MailchimpMock_ListsMock {
       return $response;
     }
     else {
-      throw new CRM_Core_Exception('The Mailchimp List ID does not exist.');
+      throw new CRM_CiviMailchimp_Exception('The Mailchimp List ID does not exist.');
     }
   }
 
@@ -92,7 +92,7 @@ class CRM_MailchimpMock_ListsMock {
       return $response;
     }
     else {
-      throw new CRM_Core_Exception('The Mailchimp List ID does not exist.');
+      throw new CRM_CiviMailchimp_Exception('The Mailchimp List ID does not exist.');
     }
   }
 
@@ -109,7 +109,7 @@ class CRM_MailchimpMock_ListsMock {
       return $response;
     }
     else {
-      throw new CRM_Core_Exception('The Mailchimp List ID does not exist.');
+      throw new CRM_CiviMailchimp_Exception('The Mailchimp List ID does not exist.');
     }
   }
 

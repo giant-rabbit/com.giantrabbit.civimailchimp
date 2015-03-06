@@ -9,7 +9,7 @@ There are a couple of other extensions that handle syncing with Mailchimp, but w
 
 Tests! We determined that the best way to ensure that the extension was working was to have as much of the code covered by automated tests as possible, which we've done.
 
-Logging and Error Handling! Sometimes things do go wrong, and when they do, we decided it's best to have them fail spectacularly. Throughout the code, we've added error handling and logging that surfaces errors to the CiviCRM log as soon as a problem is detected so it can be taken care of quickly. The worst thing is to find out months later that contacts were not being synced properly and having to unravel that mess! Also, when CiviCRM's Debug mode is enabled, all incoming and outgoing requests from/to Mailchimp are logged in the CiviCRM log.
+Logging and Error Handling! Sometimes things do go wrong, and when they do, we decided it's best to have them fail spectacularly. Throughout the code, we've added error handling and logging that surfaces errors to an admin accessible CiviMailchimp sync log as soon as a problem is detected so it can be taken care of quickly. In addition, popup error messages will be shown to the admin and will continue to be shown until an admin chooses to not display the message again. The worst thing is to find out months later that contacts were not being synced properly and having to unravel that mess! Finally, when CiviCRM's Debug mode is enabled, all incoming and outgoing requests from/to Mailchimp are logged in the CiviCRM log.
 
 ## How To Install and Configure
 

@@ -35,7 +35,7 @@ Here are some of the major architectural choices made to mitigate issues with sy
 
 #### Which Email Address To Sync
 
-Mailchimp expects each record to have a single email address. CiviCRM allows Contacts to have multiple email addresses. So, if we're syncing a Contact record to Mailchimp and that Contact has multiple email addresse, which email address should we send to Mailchimp?
+Mailchimp expects each record to have a single email address. CiviCRM allows Contacts to have multiple email addresses. So, if we're syncing a Contact record to Mailchimp and that Contact has multiple email addresses, which email address should we send to Mailchimp?
 
 The first thing we check is that the Contact is not marked Do Not Email. If they are, then they don't get synced with Mailchimp. If they aren't, then we check to see if they have an email that is marked Bulk Mailings and is not On Hold. If they do, that's the email address we sync. If not, if they have a Primary email address that is not On Hold, then we use that email address. If they don't have that, then we don't sync the Contact to Mailchimp.
 
@@ -48,7 +48,9 @@ For example, if two contacts' primary email is "test@test.com", if that email is
 ## Troubleshooting
 
 There are a number of scenarios where syncing may cease to operate. Refer to
-the CiviCRM log to see any errors reported. Some of these messages may also appear in the Job Log for the "Sync Contacts to Mailchimp" Scheduled Job. More common errors include: 
+the CiviMailchimp Sync Log (Administer > CiviMailchimp > Sync Log) and the CiviCRM log to see any errors reported. Some of these messages may also appear in the Job Log for the "Sync Contacts to Mailchimp" Scheduled Job. In addition, an admin popup will appear with any sync errors. These notifications will continue to show until an admin selects not to show a particular notification again. Hopefully all of the notifications and logging will make determining and fixing sync problems easier.
+
+More common errors include: 
 
 #### Mailchimp Interest Group Renamed/Missing
 

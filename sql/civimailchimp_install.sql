@@ -25,3 +25,19 @@ CREATE TABLE `civimailchimp_interest_groups_sync_settings` (
   PRIMARY KEY (`id`),
   CONSTRAINT FK_civimailchimp_interest_groups_sync_settings_id FOREIGN KEY (`civimailchimp_sync_settings_id`) REFERENCES `civimailchimp_sync_settings`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+
+-- /*******************************************************
+-- *
+-- * civimailchimp_sync_log
+-- *
+-- *******************************************************/
+CREATE TABLE `civimailchimp_sync_log` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Identifier',
+  `type` varchar(255) NOT NULL COMMENT 'The log message type.',
+  `direction` varchar(255) NOT NULL COMMENT 'The log message direction.',
+  `message` text NOT NULL COMMENT 'The log message.',
+  `details` longtext DEFAULT NULL COMMENT 'The log message details.',
+  `cleared` tinyint(1) DEFAULT 0 COMMENT 'The log message details.',
+  `timestamp` int unsigned NOT NULL COMMENT 'The log message timestamp.',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;

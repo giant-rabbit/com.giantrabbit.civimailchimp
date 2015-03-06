@@ -53,6 +53,22 @@ function civimailchimp_civicrm_contact_updated($old_contact, $new_contact) {
 }
 
 /**
+ * Implementation of hook_civicrm_pageRun
+ */
+function civimailchimp_civicrm_pageRun(&$page) {
+  $civi_to_mailchimp_log_message = CRM_CiviMailchimp_BAO_SyncLog::getLatestUnclearedCiviToMailchimpErrorMessage();
+  $session = CRM_Core_Session::singleton();
+  if ($civi_to_mailchimp_log_message) {
+    $session->setStatus($civi_to_mailchimp_log_message, ts("Error Syncing CiviCRM to Mailchimp"), 'alert', array('expires' => 0));
+  }
+  $mailchimp_to_civi_log_messages = CRM_CiviMailchimp_BAO_SyncLog::getUnclearedMailchimpToCiviErrorMessages();
+  foreach ($mailchimp_to_civi_log_messages as $message) {
+    $session->setStatus($message, ts("Error Syncing Mailchimp to CiviCRM"), 'alert', array('expires' => 0));
+  }
+  CRM_Core_Resources::singleton()->addScriptFile('com.giantrabbit.civimailchimp', 'js/sync_log.js');
+}
+
+/**
  * Implementation of hook_civicrm_buildForm
  */
 function civimailchimp_civicrm_buildForm($formName, &$form) {
@@ -500,6 +516,18 @@ function civimailchimp_civicrm_navigationMenu(&$params) {
             'label' => 'Force Sync',
             'name' => 'Force Sync',
             'url' => 'civicrm/admin/mailchimp/sync?reset=1',
+            'permission' => 'administer CiviCRM',
+            'operator' => NULL,
+            'parentID' => NULL,
+            'navID' => NULL,
+            'active' => 1,
+          ),
+        ),
+        2 => array(
+          'attributes' => array(
+            'label' => 'Sync Log',
+            'name' => 'Sync Log',
+            'url' => 'civicrm/admin/mailchimp/log?reset=1',
             'permission' => 'administer CiviCRM',
             'operator' => NULL,
             'parentID' => NULL,

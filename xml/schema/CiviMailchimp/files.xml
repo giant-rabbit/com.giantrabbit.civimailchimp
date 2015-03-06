@@ -2,4 +2,5 @@
 <tables xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="SyncSettings.xml" parse="xml" />
   <xi:include href="InterestGroupsSyncSettings.xml" parse="xml" />
+  <xi:include href="SyncLog.xml" parse="xml" />
 </tables>

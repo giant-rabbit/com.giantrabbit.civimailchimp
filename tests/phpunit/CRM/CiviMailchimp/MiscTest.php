@@ -22,7 +22,7 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
     // the tests slower and opens the door for writing test that aren't self-
     // sufficient, but we're forced into this as CiviUnitTestCase forces a 
     // quickCleanup on civicrm_contact in its tearDown. :(
-    $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item', 'civimailchimp_sync_settings', 'civimailchimp_interest_groups_sync_settings'));
+    $this->quickCleanup(array('civicrm_email', 'civicrm_queue_item', 'civimailchimp_sync_settings', 'civimailchimp_interest_groups_sync_settings', 'civimailchimp_sync_log'));
     civimailchimp_static('mailchimp_static_reset', NULL, TRUE);
     parent::tearDown();
   }
@@ -875,6 +875,8 @@ class CRM_CiviMailchimp_MiscTest extends CiviUnitTestCase {
       'name' => 'mailchimp-sync',
       'reset' => FALSE,
     ));
+    $message = CRM_CiviMailchimp_BAO_SyncLog::getLatestUnclearedCiviToMailchimpErrorMessage();
     $this->assertEquals(2, $queue->numberOfItems());
+    $this->assertNotNull($message);
   }
 }

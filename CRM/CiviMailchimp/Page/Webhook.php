@@ -5,7 +5,6 @@ require_once 'CRM/Core/Page.php';
 class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
   function run() {
     if (CRM_Utils_System::authenticateKey()) {
-      parent::run();
       $request_type = CRM_Utils_Request::retrieve('type', 'String');
       $request_data = CRM_Utils_Request::retrieve('data', 'String');
       $config = CRM_Core_Config::singleton();
@@ -19,9 +18,24 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
         // would trigger updates back to Mailchimp, resulting in an endless
         // loop.
         civimailchimp_static('mailchimp_do_not_run_hooks', TRUE);
-        call_user_func($function_name, $request_data);
+        try {
+          call_user_func($function_name, $request_data);
+        }
+        catch (Exception $e) {
+          $error = array(
+            'code' => get_class($e),
+            'message' => $e->getMessage(),
+            'exception' => $e,
+          );
+          $message = "Mailchimp Webhook Request [{$request_type}]: {$error['code']}: {$error['message']}";
+          CRM_CiviMailchimp_BAO_SyncLog::saveMessage('error', 'mailchimp_to_civicrm', $message, $request_data);
+          CRM_Core_Error::debug_var('Fatal Error Details', $error);
+          CRM_Core_Error::backtrace('backTrace', TRUE);
+          throw $e;
+        }
       }
     }
+    parent::run();
   }
 
   /**

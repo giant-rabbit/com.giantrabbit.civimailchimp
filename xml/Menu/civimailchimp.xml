@@ -18,4 +18,16 @@
     <title>Webhook</title>
     <access_arguments>*always allow*</access_arguments>
   </item>
+  <item>
+    <path>civicrm/admin/mailchimp/log</path>
+    <page_callback>CRM_CiviMailchimp_Page_SyncLog</page_callback>
+    <title>CiviMailchimp Sync Log</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/admin/mailchimp/log/clear-message</path>
+    <page_callback>CRM_CiviMailchimp_Page_ClearMessage::clear</page_callback>
+    <title>Clear Log Message</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
 </menu>

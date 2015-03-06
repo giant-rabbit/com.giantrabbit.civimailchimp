@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/CiviMailchimp</base>
+  <class>SyncLog</class>
+  <name>civimailchimp_sync_log</name>
+  <comment>Mailchimp sync log.</comment>
+  <add>4.2</add>
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique Identifier</comment>
+    <add>4.2</add>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+  <field>
+    <name>type</name>
+    <type>varchar</type>
+    <length>255</length>
+    <required>true</required>
+    <comment>The log message type.</comment>
+    <add>4.2</add>
+  </field>
+  <field>
+    <name>direction</name>
+    <type>varchar</type>
+    <length>255</length>
+    <required>true</required>
+    <comment>The log message direction.</comment>
+    <add>4.2</add>
+  </field>
+  <field>
+    <name>message</name>
+    <type>text</type>
+    <required>true</required>
+    <comment>The log message.</comment>
+    <add>4.2</add>
+  </field>
+  <field>
+    <name>details</name>
+    <type>longtext</type>
+    <required>false</required>
+    <comment>The log message details.</comment>
+    <add>4.2</add>
+  </field>
+  <field>
+    <name>cleared</name>
+    <type>boolean</type>
+    <default>0</default>
+    <comment>Whether the log message has been cleared.</comment>
+    <add>4.2</add>
+  </field>
+  <field>
+    <name>timestamp</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>The log message timestamp.</comment>
+    <add>4.2</add>
+  </field>
+</table>

@@ -1,5 +1,8 @@
 <div id="mailchimp-settings">
   <h3>Mailchimp Sync Settings</h3>
+  {if !$mailchimp_lists}
+    <div id="help">{ts}There are no Mailchimp Lists defined. Please ensure that your Mailchimp API settings are correct and that you have at least one List created in your Mailchimp account.{/ts}</div>
+  {/if}
   <table class="form-layout">
     <tbody>
       <tr class="crm-group-form-block-{$form.mailchimp_list.name}">

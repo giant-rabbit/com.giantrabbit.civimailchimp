@@ -74,6 +74,7 @@ function civimailchimp_civicrm_pageRun(&$page) {
 function civimailchimp_civicrm_buildForm($formName, &$form) {
   // Don't display the Mailchimp fields if this is a Smart Group.
   if ($formName === "CRM_Group_Form_Edit" && empty($form->_defaultValues['saved_search_id'])) {
+    $interest_groups_lookup = array();
     try {
       $mailchimp_lists = CRM_CiviMailchimp_Utils::getLists();
     }
@@ -97,10 +98,11 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
       }
       $form->add('select', 'mailchimp_list', ts('Mailchimp List'), $list_options, FALSE, array('class' => 'crm-select2'));
       $form->add('select', 'mailchimp_interest_groups', ts('Mailchimp Interest Groups'), $interest_groups_options, FALSE, array('multiple' => 'multiple', 'class' => 'crm-select2'));
-      CRM_Core_Resources::singleton()
-        ->addScriptFile('com.giantrabbit.civimailchimp', 'js/group_add_edit_form.js')
-        ->addSetting(array('civiMailchimp' => array('interest_groups_lookup' => $interest_groups_lookup)));
+      $form->assign('mailchimp_lists', TRUE);
     }
+    CRM_Core_Resources::singleton()
+      ->addScriptFile('com.giantrabbit.civimailchimp', 'js/group_add_edit_form.js')
+      ->addSetting(array('civiMailchimp' => array('interest_groups_lookup' => $interest_groups_lookup)));
   }
 }
 

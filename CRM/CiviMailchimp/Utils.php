@@ -369,6 +369,55 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
+   * Add a Contact that was updated to a Mailchimp List.
+   */
+  static function addUpdatedContactToMailchimpList($contact, $mailchimp_email, $mailchimp_sync_settings) {
+    foreach ($mailchimp_sync_settings as $mailchimp_sync_setting) {
+      $merge_fields = self::getMailchimpMergeFields($mailchimp_sync_setting->mailchimp_list_id);
+      $merge_vars = self::formatMailchimpMergeVars($merge_fields, $contact);
+      self::addMailchimpSyncQueueItem('subscribeContactToMailchimpList', $mailchimp_sync_setting->mailchimp_list_id, $mailchimp_email, $merge_vars);
+    }
+  }
+
+  /**
+   * Remove a Contact that was updated from a Mailchimp List.
+   */
+  static function removeUpdatedContactFromMailchimpList($mailchimp_email, $mailchimp_sync_settings) {
+    foreach ($mailchimp_sync_settings as $mailchimp_sync_setting) {
+      self::addMailchimpSyncQueueItem('unsubscribeContactFromMailchimpList', $mailchimp_sync_setting->mailchimp_list_id, $mailchimp_email);
+    }
+  }
+
+  /**
+   * Update a Contact's data in Mailchimp.
+   */
+  static function updateContactInMailchimpList($old_contact_email, $new_contact_email, $old_contact, $new_contact, $mailchimp_sync_settings) {
+    $updated_mailchimp_email = NULL;
+    $contact_mailchimp_merge_fields_changed = FALSE;
+    if ($old_contact_email !== $new_contact_email) {
+      $updated_mailchimp_email = $new_contact_email;
+      $contact_mailchimp_merge_fields_changed = TRUE;
+    }
+    $civicrm_fields_already_checked = array();
+    foreach ($mailchimp_sync_settings as $mailchimp_sync_setting) {
+      $merge_fields = self::getMailchimpMergeFields($mailchimp_sync_setting->mailchimp_list_id);
+      if (!$contact_mailchimp_merge_fields_changed) {
+        foreach ($merge_fields as $merge_field => $civicrm_field) {
+          if (!isset($civicrm_fields_already_checked[$civicrm_field]) && $old_contact->$civicrm_field !== $new_contact->$civicrm_field) {
+            $contact_mailchimp_merge_fields_changed = TRUE;
+            continue;
+          }
+          $civicrm_fields_already_checked[$civicrm_field] = 'checked';
+        }
+      }
+      if ($contact_mailchimp_merge_fields_changed) {
+        $merge_vars = self::formatMailchimpMergeVars($merge_fields, $new_contact, $updated_mailchimp_email);
+        self::addMailchimpSyncQueueItem('updateContactProfileInMailchimp', $mailchimp_sync_setting->mailchimp_list_id, $old_contact_email, $merge_vars);
+      }
+    }
+  }
+
+  /**
    * Add a given contact to the group set to sync with the given
    * Mailchimp list.
    */
@@ -386,6 +435,23 @@ class CRM_CiviMailchimp_Utils {
     $contact_ids = array($contact->id);
     $mailchimp_sync_settings = CRM_CiviMailchimp_BAO_SyncSettings::findByListId($mailchimp_list_id);
     CRM_Contact_BAO_GroupContact::removeContactsFromGroup($contact_ids, $mailchimp_sync_settings->civicrm_group_id);
+    self::markContactAsNoBulkEmailsIfSettingEnabled($contact);
+  }
+
+  /**
+   * Mark Contact as No Bulk Emails if setting is enabled.
+   */
+  static function markContactAsNoBulkEmailsIfSettingEnabled($contact) {
+    $no_bulk_emails_on_unsubscribe = CRM_Core_BAO_Setting::getItem('CiviMailchimp Preferences', 'mailchimp_no_bulk_emails_on_unsubscribe');
+    if ($no_bulk_emails_on_unsubscribe == 1) {
+      $params = array();
+      CRM_Core_DAO::storeValues($contact, $params);
+      $params['contact_id'] = $params['id'];
+      $params['is_opt_out'] = TRUE;
+      $contact = CRM_Contact_BAO_Contact::create($params);
+    }
+
+    return $contact;
   }
 
   /**
@@ -500,7 +566,6 @@ class CRM_CiviMailchimp_Utils {
    * Get all members of a Mailchimp List.
    *
    * We do this using Mailchimp Export API as the standard API has a 100 member
-   * return limit: https://apidocs.mailchimp.com/export/1.0/list.func.php
    */
   static function getAllMembersOfMailchimpList($mailchimp_export_url, $list_id) {
     $file_path = self::retrieveMailchimpMemberExportFile($mailchimp_export_url, $list_id);

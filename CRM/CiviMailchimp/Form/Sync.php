@@ -44,12 +44,23 @@ class CRM_CiviMailchimp_Form_Sync extends CRM_Core_Form {
 
   static function forceCiviToMailchimpSync($mailchimp_sync_setting) {
     $contacts = CRM_Contact_BAO_Group::getGroupContacts($mailchimp_sync_setting->civicrm_group_id);
-    foreach ($contacts as $contact) {
+    $skipped_contacts = 0;
+    foreach ($contacts as $key => $contact) {
       $contact = CRM_CiviMailchimp_Utils::getContactById($contact['contact_id']);
       $email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
-      $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields($mailchimp_sync_setting->mailchimp_list_id);
-      $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact);
-      CRM_CiviMailchimp_Utils::subscribeContactToMailchimpList($mailchimp_sync_setting->mailchimp_list_id, $email, $merge_vars);
+      if ($email === NULL) {
+        ++$skipped_contacts;
+        unset($contacts[$key]);
+      }
+      else {
+        $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields($mailchimp_sync_setting->mailchimp_list_id);
+        $merge_vars = CRM_CiviMailchimp_Utils::formatMailchimpMergeVars($merge_fields, $contact);
+        CRM_CiviMailchimp_Utils::subscribeContactToMailchimpList($mailchimp_sync_setting->mailchimp_list_id, $email, $merge_vars);
+      }
+    }
+    if ($skipped_contacts > 0) {
+      $message = ts('%1 records were not synced to Mailchimp because they did not have a valid email address.', array(1 => $skipped_contacts));
+      CRM_CiviMailchimp_BAO_SyncLog::saveMessage('error', 'civicrm_to_mailchimp', $message);
     }
 
     return $contacts;

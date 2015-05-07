@@ -64,11 +64,19 @@ There is the possibility that a contact's data in CiviCRM and Mailchimp can get 
 
 In this case, an "Mailchimp_Email_NotExists" error along with which email address is in error will be reported in the CiviCRM log. To correct this issue, it is recommended that an administrator change the Mailchimp version of the email address back to the version in CiviCRM. Then, change the email address in CiviCRM and it will be synced back to Mailchimp once the Scheduled Job runs.
 
+#### Contact Count in Synced CiviCRM Group Does Not Match Mailchimp List
+
+The most common reason for this is that there are some Contacts in the CiviCRM Group that do not have a valid email address or are marked as No Bulk Emails. Those Contacts will not get synced to the Mailchimp list.
+
 ## Known Issues
 
 #### Smart Groups
 
 This extension does not currently support Smart Groups but may in a future release. The reason for this is that Smart Groups lie outside the paradigm that Mailchimp expects for a mailing list, where a user has the opportunity to unsubscribe from the list. With a Smart Group, there is no way for an end-user to unsubscribe, so Smart Groups must be treated differently. We are exploring the possibility of treating Smart Group syncing as a one-off action, to be used for things like fundraising thank-you emails.
+
+There is a setting available that will mark a Contact as No Bulk Emails when they are unsubscribed from a Mailchimp List through Mailchimp along with also removing them from the connected CiviCRM Group. This then allows an administrator to create one-off groups that are based on a Smart Group and sync that group to Mailchimp. Then, if a user unsubscribes through Mailchimp, you can be sure they won't be added to the Mailchimp list again the next time a group is created based on that Smart Group. This workflow can be used for emailing current members on a monthly basis, for example.
+
+This setting is not enabled by default, since it would preclude the use-case where there are multiple Mailchimp lists and users can unsubscribe to just one of them, it they so choose. The setting is available at Administer > CiviMailchimp > Mailchimp Settings.
 
 #### Custom Mailchimp Merge Fields
 

@@ -336,6 +336,131 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertEquals('Test group testGetGroupById', $returned_group->name);
   }
 
+  function testAddUpdatedContactToMailchimpList() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testAddUpdatedContactToMailchimpList');
+    $mailchimp_sync_settings = array($mailchimp_sync_setting);
+    CRM_CiviMailchimp_Utils::addUpdatedContactToMailchimpList($contact, $mailchimp_email, $mailchimp_sync_settings);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => FALSE,
+    ));
+    $item = $queue->claimItem();
+    $this->assertEquals('CRM_CiviMailchimp_Utils', $item->data->callback[0]);
+    $this->assertEquals('processCiviMailchimpQueueItem', $item->data->callback[1]);
+    $this->assertEquals('subscribeContactToMailchimpList', $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_sync_setting->mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($mailchimp_email, $item->data->arguments[2]);
+  }
+
+  function testRemoveUpdatedContactFromMailchimpList() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $mailchimp_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testRemoveUpdatedContactFromMailchimpList');
+    $mailchimp_sync_settings = array($mailchimp_sync_setting);
+    CRM_CiviMailchimp_Utils::removeUpdatedContactFromMailchimpList($mailchimp_email, $mailchimp_sync_settings);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => FALSE,
+    ));
+    $item = $queue->claimItem();
+    $this->assertEquals('CRM_CiviMailchimp_Utils', $item->data->callback[0]);
+    $this->assertEquals('processCiviMailchimpQueueItem', $item->data->callback[1]);
+    $this->assertEquals('unsubscribeContactFromMailchimpList', $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_sync_setting->mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($mailchimp_email, $item->data->arguments[2]);
+  }
+
+  function testUpdateContactInMailchimpListEmailChanged() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group testUpdateContactInMailchimpListEmailChanged', $mailchimp_list_id);
+    $mailchimp_sync_settings = array($mailchimp_sync_setting);
+    $old_contact_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $new_contact_params = $old_contact_params;
+    $old_contact_created = CRM_Contact_BAO_Contact::create($old_contact_params);
+    $old_contact = CRM_CiviMailchimp_Utils::getContactById($old_contact_created->id);
+    $old_contact_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($old_contact);
+    $contact_ids = array($old_contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $new_contact_params['contact_id'] = $old_contact->id;
+    $new_contact_params['email'][0]['email'] = "updated_{$old_contact_params['email'][0]['email']}";
+    $new_contact_created = CRM_Contact_BAO_Contact::create($new_contact_params);
+    $new_contact = CRM_CiviMailchimp_Utils::getContactById($new_contact_created->id);
+    $new_contact_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($new_contact);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    CRM_CiviMailchimp_Utils::updateContactInMailchimpList($old_contact_email, $new_contact_email, $old_contact, $new_contact, $mailchimp_sync_settings);
+    $item = $queue->claimItem();
+    $this->assertEquals('updateContactProfileInMailchimp', $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($old_contact_email, $item->data->arguments[2]);
+    $this->assertEquals($new_contact_params['first_name'], $item->data->arguments[3]['FNAME']);
+    $this->assertEquals($new_contact_params['last_name'], $item->data->arguments[3]['LNAME']);
+    $this->assertEquals($new_contact_email, $item->data->arguments[3]['new-email']);
+  }
+
+  function testUpdateContactInMailchimpListNameChanged() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group testUpdateContactInMailchimpListNameChanged', $mailchimp_list_id);
+    $mailchimp_sync_settings = array($mailchimp_sync_setting);
+    $old_contact_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $new_contact_params = $old_contact_params;
+    $old_contact_created = CRM_Contact_BAO_Contact::create($old_contact_params);
+    $old_contact = CRM_CiviMailchimp_Utils::getContactById($old_contact_created->id);
+    $old_contact_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($old_contact);
+    $contact_ids = array($old_contact->id,);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $new_contact_params['contact_id'] = $old_contact->id;
+    $new_contact_params['first_name'] = 'NewFirstName';
+    $new_contact_created = CRM_Contact_BAO_Contact::create($new_contact_params);
+    $new_contact = CRM_CiviMailchimp_Utils::getContactById($new_contact_created->id);
+    $new_contact_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($new_contact);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    CRM_CiviMailchimp_Utils::updateContactInMailchimpList($old_contact_email, $new_contact_email, $old_contact, $new_contact, $mailchimp_sync_settings);
+    $item = $queue->claimItem();
+    $this->assertEquals('updateContactProfileInMailchimp', $item->data->arguments[0]);
+    $this->assertEquals($mailchimp_list_id, $item->data->arguments[1]);
+    $this->assertEquals($old_contact_email, $item->data->arguments[2]);
+    $this->assertEquals($new_contact_params['first_name'], $item->data->arguments[3]['FNAME']);
+    $this->assertEquals($new_contact_params['last_name'], $item->data->arguments[3]['LNAME']);
+  }
+
+  function testUpdateContactInMailchimpListNothingChanged() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group test_contact_removed_from_group_nothing_changed', $mailchimp_list_id);
+    $mailchimp_sync_settings = array($mailchimp_sync_setting);
+    $old_contact_params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $new_contact_params = $old_contact_params;
+    $old_contact_created = CRM_Contact_BAO_Contact::create($old_contact_params);
+    $old_contact = CRM_CiviMailchimp_Utils::getContactById($old_contact_created->id);
+    $old_contact_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($old_contact);
+    $contact_ids = array($old_contact->id,);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $new_contact_params['contact_id'] = $old_contact->id;
+    $new_contact_created = CRM_Contact_BAO_Contact::create($new_contact_params);
+    $new_contact = CRM_CiviMailchimp_Utils::getContactById($new_contact_created->id);
+    $new_contact_email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($new_contact);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    CRM_CiviMailchimp_Utils::updateContactInMailchimpList($old_contact_email, $new_contact_email, $old_contact, $new_contact, $mailchimp_sync_settings);
+    $this->assertEquals(0, $queue->numberOfItems());
+  }
+
   function testAddContactToGroup() {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);
@@ -362,6 +487,41 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     CRM_CiviMailchimp_Utils::removeContactFromGroup($contact, $mailchimp_sync_setting->mailchimp_list_id);
     $contact_added_to_group = CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $mailchimp_sync_setting->civicrm_group_id);
     $this->assertFalse($contact_added_to_group);
+  }
+
+  function testRemoveContactFromGroupMarkedAsNoBulkEmails() {
+    $no_bulk_emails_on_unsubscribe = CRM_Core_BAO_Setting::setItem(1, 'CiviMailchimp Preferences', 'mailchimp_no_bulk_emails_on_unsubscribe');
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testRemoveContactFromGroupMarkedAsNoBulkEmails');
+    // Test that the contact is in the group
+    $contact_ids = array($contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $contact_added_to_group = CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $mailchimp_sync_setting->civicrm_group_id);
+    $this->assertTrue($contact_added_to_group);
+    // Test that the contact is removed from the group
+    CRM_CiviMailchimp_Utils::removeContactFromGroup($contact, $mailchimp_sync_setting->mailchimp_list_id);
+    $contact_added_to_group = CRM_Contact_BAO_GroupContact::isContactInGroup($contact->id, $mailchimp_sync_setting->civicrm_group_id);
+    $this->assertFalse($contact_added_to_group);
+    // Test that contact is marked as No Bulk Emails
+    $updated_contact = CRM_CiviMailchimp_Utils::getContactById($contact->id);
+    $this->assertEquals(1, $updated_contact->is_opt_out);
+  }
+
+  function testMarkContactAsNoBulkEmailsIfSettingEnabled() {
+    $no_bulk_emails_on_unsubscribe = CRM_Core_BAO_Setting::setItem(1, 'CiviMailchimp Preferences', 'mailchimp_no_bulk_emails_on_unsubscribe');
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $updated_contact = CRM_CiviMailchimp_Utils::markContactAsNoBulkEmailsIfSettingEnabled($contact);
+    $this->assertEquals(1, $updated_contact->is_opt_out);
+  }
+
+  function testMarkContactAsNoBulkEmailsIfSettingEnabledDisabled() {
+    $no_bulk_emails_on_unsubscribe = CRM_Core_BAO_Setting::setItem(0, 'CiviMailchimp Preferences', 'mailchimp_no_bulk_emails_on_unsubscribe');
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $updated_contact = CRM_CiviMailchimp_Utils::markContactAsNoBulkEmailsIfSettingEnabled($contact);
+    $this->assertEquals(0, $updated_contact->is_opt_out);
   }
 
   function testAddWebhookToMailchimpList() {

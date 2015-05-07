@@ -32,6 +32,20 @@ return array (
     'title' => 'Mailchimp Merge Fields',
     'description' => 'Custom merge fields declaration for Mailchimp lists.'
   ),
+  'mailchimp_no_bulk_emails_on_unsubscribe' => array(
+    'group_name' => 'CiviMailchimp Preferences',
+    'group' => 'civimailchimp',
+    'name' => 'mailchimp_no_bulk_emails_on_unsubscribe',
+    'type' => 'Boolean',
+    'add' => '4.2',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'default' => '0',
+    'title' => 'Mark Contacts as "No Bulk Emails" on Unsubscribe',
+    'description' => 'When a Contact is usubscribed from a Mailchimp list in Mailchimp, mark them as "No Bulk Emails" in CiviCRM along with removing them from the CiviCRM Group associated with the Mailchimp list.',
+    'help_text' => '',
+    'quick_form_type' => 'YesNo',
+  ),
   'mailchimp_webhook_base_url' => array(
     'group_name' => 'CiviMailchimp Preferences',
     'group' => 'civimailchimp',

@@ -49,6 +49,19 @@ class CRM_CiviMailchimp_Form_SyncTest extends CiviUnitTestCase {
     $this->assertEquals($contact->id, $contacts[$contact->id]['contact_id']);
   }
 
+  function testForceCiviToMailchimpSyncNullEmail() {
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group testForceCiviToMailchimpSyncNullEmail');
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    unset($params['email']);
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $contact_ids = array($contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $contacts = CRM_CiviMailchimp_Form_Sync::forceCiviToMailchimpSync($mailchimp_sync_setting);
+    $mailchimp_api_subscribe = civimailchimp_static('mailchimp_api_subscribe');
+    $this->assertCount(0, $contacts);
+    $this->assertNull($mailchimp_api_subscribe);
+  }
+
   function testForceMailchimpToCiviSync() {
     $mailchimp_export_url = __DIR__ . '/../../../sample_mailchimp_export.txt';
     $mailchimp_export_url = 'file:///' . realpath($mailchimp_export_url);

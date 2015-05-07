@@ -105,4 +105,17 @@ class CRM_CiviMailchimp_BAO_SyncLog extends CRM_CiviMailchimp_DAO_SyncLog {
     $mailchimp_sync_log->cleared = 1;
     $mailchimp_sync_log->save();
   }
+
+  static function renderMessages() {
+    $civi_to_mailchimp_log_message = CRM_CiviMailchimp_BAO_SyncLog::getLatestUnclearedCiviToMailchimpErrorMessage();
+    $session = CRM_Core_Session::singleton();
+    if ($civi_to_mailchimp_log_message) {
+      $session->setStatus($civi_to_mailchimp_log_message, ts("Error Syncing CiviCRM to Mailchimp"), 'alert', array('expires' => 0));
+    }
+    $mailchimp_to_civi_log_messages = CRM_CiviMailchimp_BAO_SyncLog::getUnclearedMailchimpToCiviErrorMessages();
+    foreach ($mailchimp_to_civi_log_messages as $message) {
+      $session->setStatus($message, ts("Error Syncing Mailchimp to CiviCRM"), 'alert', array('expires' => 0));
+    }
+    CRM_Core_Resources::singleton()->addScriptFile('com.giantrabbit.civimailchimp', 'js/sync_log.js');
+  }
 }

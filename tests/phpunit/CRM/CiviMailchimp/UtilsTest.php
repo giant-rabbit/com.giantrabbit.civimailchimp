@@ -336,6 +336,25 @@ class CRM_CiviMailchimp_UtilsTest extends CiviUnitTestCase {
     $this->assertEquals('Test group testGetGroupById', $returned_group->name);
   }
 
+  function testGetActiveGroupMembers() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testGetActiveGroupMembers');
+    $contact_ids = array($contact->id);
+    CRM_Contact_BAO_GroupContact::addContactsToGroup($contact_ids, $mailchimp_sync_setting->civicrm_group_id);
+    $group_contact_ids = CRM_CiviMailchimp_Utils::getActiveGroupMembers($mailchimp_sync_setting->civicrm_group_id);
+    $this->assertCount(1, $group_contact_ids);
+    $this->assertEquals($contact->id, $group_contact_ids[0]);
+  }
+
+  function testGetActiveGroupMembersEmptyGroup() {
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test group testGetActiveGroupMembersEmptyGroup');
+    $group_contact_ids = CRM_CiviMailchimp_Utils::getActiveGroupMembers($mailchimp_sync_setting->civicrm_group_id);
+    $this->assertEmpty($group_contact_ids);
+  }
+
   function testAddUpdatedContactToMailchimpList() {
     $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
     $contact = CRM_Contact_BAO_Contact::create($params);

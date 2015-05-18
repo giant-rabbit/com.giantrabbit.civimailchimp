@@ -43,14 +43,14 @@ class CRM_CiviMailchimp_Form_Sync extends CRM_Core_Form {
   }
 
   static function forceCiviToMailchimpSync($mailchimp_sync_setting) {
-    $contacts = CRM_Contact_BAO_Group::getMember($mailchimp_sync_setting->civicrm_group_id, FALSE);
+    $contacts = CRM_CiviMailchimp_Utils::getActiveGroupMembers($mailchimp_sync_setting->civicrm_group_id);
     $skipped_contacts = 0;
-    foreach ($contacts as $contact_id => $value) {
+    foreach ($contacts as $key => $contact_id) {
       $contact = CRM_CiviMailchimp_Utils::getContactById($contact_id);
       $email = CRM_CiviMailchimp_Utils::determineMailchimpEmailForContact($contact);
       if ($email === NULL) {
         ++$skipped_contacts;
-        unset($contacts[$contact_id]);
+        unset($contacts[$key]);
       }
       else {
         $merge_fields = CRM_CiviMailchimp_Utils::getMailchimpMergeFields($mailchimp_sync_setting->mailchimp_list_id);

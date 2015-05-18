@@ -46,7 +46,7 @@ class CRM_CiviMailchimp_Form_SyncTest extends CiviUnitTestCase {
     $mailchimp_api_subscribe = civimailchimp_static('mailchimp_api_subscribe');
     $this->assertCount(1, $contacts);
     $this->assertTrue($mailchimp_api_subscribe);
-    $this->assertEquals($contact->id, $contacts[$contact->id]['contact_id']);
+    $this->assertEquals($contact->id, $contacts[0]);
   }
 
   function testForceCiviToMailchimpSyncNullEmail() {

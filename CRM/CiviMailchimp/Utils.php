@@ -369,6 +369,30 @@ class CRM_CiviMailchimp_Utils {
   }
 
   /**
+   * Get Contact IDs for members "Added" (active) members for given group id.
+   */
+  static function getActiveGroupMembers($group_id) {
+    $query = "
+      SELECT
+        contact_id
+      FROM
+        civicrm_group_contact
+      WHERE
+        group_id = %1
+      AND
+        status = 'Added';
+    ";
+    $params = array(1 => array($group_id, 'Integer'));
+    $result = CRM_Core_DAO::executeQuery($query, $params);
+    $contact_ids = array();
+    while ($result->fetch()) {
+      $contact_ids[] = $result->contact_id;
+    }
+
+    return $contact_ids;
+  }
+
+  /**
    * Add a Contact that was updated to a Mailchimp List.
    */
   static function addUpdatedContactToMailchimpList($contact, $mailchimp_email, $mailchimp_sync_settings) {

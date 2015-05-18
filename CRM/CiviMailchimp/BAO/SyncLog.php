@@ -106,6 +106,18 @@ class CRM_CiviMailchimp_BAO_SyncLog extends CRM_CiviMailchimp_DAO_SyncLog {
     $mailchimp_sync_log->save();
   }
 
+  static function clearAllMessages() {
+    $query = "
+      UPDATE
+        civimailchimp_sync_log
+      SET
+        cleared = 1
+      WHERE
+        cleared = 0;
+    ";
+    CRM_Core_DAO::executeQuery($query);
+  }
+
   static function renderMessages() {
     $civi_to_mailchimp_log_message = CRM_CiviMailchimp_BAO_SyncLog::getLatestUnclearedCiviToMailchimpErrorMessage();
     $session = CRM_Core_Session::singleton();

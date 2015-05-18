@@ -30,4 +30,10 @@
     <title>Clear Log Message</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/admin/mailchimp/log/clear-all-messages</path>
+    <page_callback>CRM_CiviMailchimp_Page_ClearAllMessages</page_callback>
+    <title>Clear All Unread CiviMailchimp Log Messages</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
 </menu>

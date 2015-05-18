@@ -2,6 +2,9 @@
   {ts}This page will list the <strong>100 most recent</strong> CiviMailchimp sync log
 messages. Older messages can be viewed in the standard CiviCRM log file.{/ts}
 </div>
+<div>
+  <a href="/civicrm/admin/mailchimp/log/clear-all-messages">Clear all unread messages.</a>
+</div>
 <table cellpadding="0" cellspacing="0" border="0">
   <tr class="columnheader">
     <th>{ts}Type{/ts}</th>

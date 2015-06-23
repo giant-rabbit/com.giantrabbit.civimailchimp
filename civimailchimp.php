@@ -49,7 +49,9 @@ function civimailchimp_civicrm_contact_updated($old_contact, $new_contact) {
  * Implementation of hook_civicrm_pageRun
  */
 function civimailchimp_civicrm_pageRun(&$page) {
-  CRM_CiviMailchimp_BAO_SyncLog::renderMessages();
+  if (CRM_Core_Permission::check('administer CiviCRM')) {
+    CRM_CiviMailchimp_BAO_SyncLog::renderMessages();
+  }
 }
 
 /**
@@ -57,7 +59,9 @@ function civimailchimp_civicrm_pageRun(&$page) {
  */
 function civimailchimp_civicrm_buildForm($formName, &$form) {
   // Render any Sync Log Messages.
-  CRM_CiviMailchimp_BAO_SyncLog::renderMessages();
+  if (CRM_Core_Permission::check('administer CiviCRM')) {
+    CRM_CiviMailchimp_BAO_SyncLog::renderMessages();
+  }
 
   // Don't display the Mailchimp fields if this is a Smart Group.
   if ($formName === "CRM_Group_Form_Edit" && empty($form->_defaultValues['saved_search_id'])) {
@@ -184,8 +188,10 @@ function civimailchimp_catch_mailchimp_api_error($exception) {
     'message' => $exception->getMessage(),
   );
   $message = ts("There was an error when trying to retrieve available Mailchimp Lists to sync to a group. {$error['code']}: {$error['message']}.");
-  $session = CRM_Core_Session::singleton();
-  $session->setStatus($message, ts("Mailchimp API Error"), 'alert', array('expires' => 0));
+  if (CRM_Core_Permission::check('administer CiviCRM')) {
+    $session = CRM_Core_Session::singleton();
+    $session->setStatus($message, ts("Mailchimp API Error"), 'alert', array('expires' => 0));
+  }
   CRM_Core_Error::debug_var('Fatal Error Details', $error);
   CRM_Core_Error::backtrace('backTrace', TRUE);
 }

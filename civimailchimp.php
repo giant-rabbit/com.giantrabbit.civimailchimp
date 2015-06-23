@@ -80,7 +80,7 @@ function civimailchimp_civicrm_buildForm($formName, &$form) {
           if (isset($interest_groups_lookup[$mailchimp_sync_settings->mailchimp_list_id])) { 
             $interest_groups_options = $interest_groups_lookup[$mailchimp_sync_settings->mailchimp_list_id];
           }
-          civimailchimp_civicrm_setDefaults(&$form, $mailchimp_sync_settings);
+          civimailchimp_civicrm_setDefaults($form, $mailchimp_sync_settings);
         }
       }
       $form->add('select', 'mailchimp_list', ts('Mailchimp List'), $list_options, FALSE, array('class' => 'crm-select2'));
@@ -330,10 +330,10 @@ function civimailchimp_civicrm_pre($op, $object_name, $id, &$params) {
     $function_name_object_op = "civimailchimp_civicrm_pre_{$object_name}_{$op}";
     $function_name_object = "civimailchimp_civicrm_pre_{$object_name}";
     if (is_callable($function_name_object_op)) {
-      call_user_func($function_name_object_op, $id, &$params);
+      call_user_func($function_name_object_op, $id, $params);
     }
     elseif (is_callable($function_name_object)) {
-      call_user_func($function_name_object, $op, $id, &$params);
+      call_user_func($function_name_object, $op, $id, $params);
     }
   }
 }
@@ -349,10 +349,10 @@ function civimailchimp_civicrm_post($op, $object_name, $object_id, &$object) {
     $function_name_object_op = "civimailchimp_civicrm_post_{$object_name}_{$op}";
     $function_name_object = "civimailchimp_civicrm_post_{$object_name}";
     if (is_callable($function_name_object_op)) {
-      call_user_func($function_name_object_op, $object_id, &$object);
+      call_user_func($function_name_object_op, $object_id, $object);
     }
     elseif (is_callable($function_name_object)) {
-      call_user_func($function_name_object, $op, $object_id, &$object);
+      call_user_func($function_name_object, $op, $object_id, $object);
     }
   }
 }

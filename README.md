@@ -25,7 +25,7 @@ At this point, you should be able to edit a CiviCRM Group and associate it to a 
 
 Changes to Contacts in that Group are added to a CiviCRM Queue. In order to trigger the processing of that Queue, you must configure CiviCRM's Cron as documented at http://wiki.civicrm.org/confluence/display/CRMDOC/Managing+Scheduled+Jobs. Then, enable the "Sync Contacts to Mailchimp" Scheduled Job by going to Administer > System Settings > Scheduled Jobs. You can also manually execute the scheduled job here for debugging and testing purposes.
 
-If the Group or Mailchimp List have existing records, in order to ensure those records are properly synced, you can run a Force Sync. Go to Administer > CiviMailchimp > Force Sync, select the CiviCRM Group and click Submit. This will perform a one-time sync between CiviCRM and Mailchimp.
+If the Group or Mailchimp List have existing records, in order to ensure those records are properly synced, you should run a Force Sync. Go to Administer > CiviMailchimp > Force Sync, select the CiviCRM Group and click Submit. This will perform a one-time sync between CiviCRM and Mailchimp.
 
 ## Important Architectural Choices
 

@@ -139,8 +139,43 @@ class CRM_CiviMailchimp_BAO_SyncLogTest extends CiviUnitTestCase {
     $this->assertEquals(1, $mailchimp_sync_log->cleared);
   }
 
-  static function createTestLogMessage($message, $details = NULL, $direction = 'civicrm_to_mailchimp', $type = 'error') {
-    $mailchimp_sync_log = CRM_CiviMailchimp_BAO_SyncLog::saveMessage($type, $direction, $message, $details);
+  function testClearQueueItem() {
+    $mailchimp_list_id = 'MailchimpListsTestListA';
+    $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettingsTest::createTestGroupAndSyncSettings('Test Group testClearQueueItem', $mailchimp_list_id);
+    $group = CRM_CiviMailchimp_Utils::getGroupById($mailchimp_sync_setting->civicrm_group_id);
+    $params = CRM_CiviMailchimp_UtilsTest::sampleContactParams();
+    $contact = CRM_Contact_BAO_Contact::create($params);
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'type' => 'Sql',
+      'name' => 'mailchimp-sync',
+      'reset' => TRUE,
+    ));
+    civimailchimp_civicrm_contact_removed_from_group($group, $contact);
+    $item = $queue->claimItem($lease_time = 0);
+    $existing_mailchimp_sync_log = self::createTestLogMessage('This is a test error message', $details = NULL, $direction = 'civicrm_to_mailchimp', $type = 'error', $item->id);
+    CRM_CiviMailchimp_BAO_SyncLog::clearQueueItem($item->id);
+    $query = "
+      SELECT
+        *
+      FROM
+        civicrm_queue_item
+      WHERE
+        queue_name = 'mailchimp-sync'
+      AND
+        id = %1
+      LIMIT 1
+      ";
+    $params = array(
+      1 => array($item->id, 'Integer'),
+    );
+    $new_item = CRM_Core_DAO::executeQuery($query, $params, TRUE, 'CRM_Queue_DAO_QueueItem');
+    $mailchimp_sync_log = CRM_CiviMailchimp_BAO_SyncLog::findById($existing_mailchimp_sync_log->id);
+    $this->assertFalse($new_item->fetch());
+    $this->assertNull($mailchimp_sync_log->civicrm_queue_item_id);
+  }
+
+  static function createTestLogMessage($message, $details = NULL, $direction = 'civicrm_to_mailchimp', $type = 'error', $civicrm_queue_item_id = NULL) {
+    $mailchimp_sync_log = CRM_CiviMailchimp_BAO_SyncLog::saveMessage($type, $direction, $message, $details, $civicrm_queue_item_id);
     return $mailchimp_sync_log;
   }
 }

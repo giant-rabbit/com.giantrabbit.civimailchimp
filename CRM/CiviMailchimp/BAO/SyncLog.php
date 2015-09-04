@@ -2,12 +2,13 @@
 
 class CRM_CiviMailchimp_BAO_SyncLog extends CRM_CiviMailchimp_DAO_SyncLog {
   
-  static function saveMessage($type, $direction, $message, $details = NULL) {
+  static function saveMessage($type, $direction, $message, $details = NULL, $civicrm_queue_item_id = NULL) {
     $mailchimp_sync_log = new CRM_CiviMailchimp_BAO_SyncLog();
     $mailchimp_sync_log->type = $type;
     $mailchimp_sync_log->direction = $direction;
     $mailchimp_sync_log->message = $message;
     $mailchimp_sync_log->details = serialize($details);
+    $mailchimp_sync_log->civicrm_queue_item_id = $civicrm_queue_item_id;
     $mailchimp_sync_log->timestamp = time();
     $mailchimp_sync_log->save();
 
@@ -65,6 +66,10 @@ class CRM_CiviMailchimp_BAO_SyncLog extends CRM_CiviMailchimp_DAO_SyncLog {
     $message .= ts('<br /><br />Additional details can be found at the %1.', array(1 => CRM_Utils_System::href('CiviMailchimp Sync Log', 'civicrm/admin/mailchimp/log')));
     $url =  CRM_Utils_System::url('civicrm/admin/mailchimp/log/clear-message', array('id' => $mailchimp_sync_log->id));
     $message .= ts('<br /><br /><a class="clear-link" href="%1">Do not show this message again.</a>', array(1 => $url));
+    if (!empty($mailchimp_sync_log->civicrm_queue_item_id)) {
+      $queue_item_url =  CRM_Utils_System::url('civicrm/admin/mailchimp/log/clear-queue-item', array('id' => $mailchimp_sync_log->id, 'qid' => $mailchimp_sync_log->civicrm_queue_item_id));
+      $message .= ts('<br /><br /><a class="clear-link" href="%1">Do not attempt to sync this item again.</a>', array(1 => $queue_item_url));
+    }
     return $message;
   }
 
@@ -116,6 +121,28 @@ class CRM_CiviMailchimp_BAO_SyncLog extends CRM_CiviMailchimp_DAO_SyncLog {
         cleared = 0;
     ";
     CRM_Core_DAO::executeQuery($query);
+  }
+
+  static function clearQueueItem($civicrm_queue_item_id) {
+    $query = "
+      SELECT
+        *
+      FROM
+        civicrm_queue_item
+      WHERE
+        queue_name = 'mailchimp-sync'
+      AND
+        id = %1
+      LIMIT 1
+      ";
+    $params = array(
+      1 => array($civicrm_queue_item_id, 'Integer'),
+    );
+    $civicrm_queue_item = CRM_Core_DAO::executeQuery($query, $params, TRUE, 'CRM_Queue_DAO_QueueItem');
+    if ($civicrm_queue_item->fetch()) {
+      $civicrm_queue_item->delete();
+      $civicrm_queue_item->free();
+    }
   }
 
   static function renderMessages() {

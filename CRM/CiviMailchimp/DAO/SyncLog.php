@@ -125,6 +125,12 @@ class CRM_CiviMailchimp_DAO_SyncLog extends CRM_Core_DAO
    */
   public $cleared;
   /**
+   * ID of the civicrm_queue_item record related to this error message.
+   *
+   * @var int unsigned
+   */
+  public $civicrm_queue_item_id;
+  /**
    * The log message timestamp.
    *
    * @var int unsigned
@@ -140,6 +146,21 @@ class CRM_CiviMailchimp_DAO_SyncLog extends CRM_Core_DAO
   {
     $this->__table = 'civimailchimp_sync_log';
     parent::__construct();
+  }
+  /**
+   * return foreign keys and entity references
+   *
+   * @static
+   * @access public
+   * @return array of CRM_Core_Reference_Interface
+   */
+  static function getReferenceColumns()
+  {
+    if (!self::$_links) {
+      self::$_links = static ::createReferenceColumns(__CLASS__);
+      self::$_links[] = new CRM_Core_Reference_Basic(self::getTableName() , 'civicrm_queue_item_id', 'civicrm_queue_item', 'id');
+    }
+    return self::$_links;
   }
   /**
    * returns all the column names of this table
@@ -189,6 +210,12 @@ class CRM_CiviMailchimp_DAO_SyncLog extends CRM_Core_DAO
           'type' => CRM_Utils_Type::T_BOOLEAN,
           'title' => ts('Cleared') ,
         ) ,
+        'civicrm_queue_item_id' => array(
+          'name' => 'civicrm_queue_item_id',
+          'type' => CRM_Utils_Type::T_INT,
+          'default' => 'NULL',
+          'FKClassName' => 'CRM_Queue_DAO_QueueItem',
+        ) ,
         'timestamp' => array(
           'name' => 'timestamp',
           'type' => CRM_Utils_Type::T_INT,
@@ -216,6 +243,7 @@ class CRM_CiviMailchimp_DAO_SyncLog extends CRM_Core_DAO
         'message' => 'message',
         'details' => 'details',
         'cleared' => 'cleared',
+        'civicrm_queue_item_id' => 'civicrm_queue_item_id',
         'timestamp' => 'timestamp',
       );
     }

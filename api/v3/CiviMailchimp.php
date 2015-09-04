@@ -22,6 +22,7 @@ function civicrm_api3_civi_mailchimp_sync($params) {
         // reporting and logging.
         $query = "
           SELECT
+            id,
             data
           FROM
             civicrm_queue_item
@@ -32,25 +33,27 @@ function civicrm_api3_civi_mailchimp_sync($params) {
             id ASC
           LIMIT 1
         ";
-        $item = CRM_Core_DAO::singleValueQuery($query);
-        $item_data = unserialize($item);
-        $message = "[{$item_data->arguments[0]}] There was an error syncing contacts to Mailchimp.";
-        $exception_name = '';
-        if (!empty($record['exception'])) {
-          $exception_name = get_class($record['exception']);
-          $message = "[{$item_data->arguments[0]}] {$exception_name}: {$record['exception']->getMessage()}.";
-        }
-        $message .= " Mailchimp List ID: {$item_data->arguments[1]}. {$records_processed} records were successfully synced before this error.";
-        $error = array(
-          'code' => $exception_name,
-          'message' => $message,
-          'exception' => $record['exception'],
-        );
-        CRM_Core_Error::debug_var('Fatal Error Details', $error);
-        CRM_Core_Error::backtrace('backTrace', TRUE);
-        CRM_CiviMailchimp_BAO_SyncLog::saveMessage('error', 'civicrm_to_mailchimp', $message, $item_data);
+        $item = CRM_Core_DAO::executeQuery($query);
+        while ($item->fetch()) {
+          $item_data = unserialize($item->data);
+          $message = "[{$item_data->arguments[0]}] There was an error syncing contacts to Mailchimp.";
+          $exception_name = '';
+          if (!empty($record['exception'])) {
+            $exception_name = get_class($record['exception']);
+            $message = "[{$item_data->arguments[0]}] {$exception_name}: {$record['exception']->getMessage()}.";
+          }
+          $message .= " Mailchimp List ID: {$item_data->arguments[1]}. {$records_processed} records were successfully synced before this error.";
+          $error = array(
+            'code' => $exception_name,
+            'message' => $message,
+            'exception' => $record['exception'],
+          );
+          CRM_Core_Error::debug_var('Fatal Error Details', $error);
+          CRM_Core_Error::backtrace('backTrace', TRUE);
+          CRM_CiviMailchimp_BAO_SyncLog::saveMessage('error', 'civicrm_to_mailchimp', $message, $item_data, $item->id);
 
-        return civicrm_api3_create_error($message);
+          return civicrm_api3_create_error($message);
+        }
       }
       $continue_to_next_item = $record['is_continue'];
       $records_processed++;

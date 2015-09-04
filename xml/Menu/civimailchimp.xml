@@ -36,4 +36,10 @@
     <title>Clear All Unread CiviMailchimp Log Messages</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/admin/mailchimp/log/clear-queue-item</path>
+    <page_callback>CRM_CiviMailchimp_Page_ClearQueueItem::clear</page_callback>
+    <title>Clear Queue Item</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
 </menu>

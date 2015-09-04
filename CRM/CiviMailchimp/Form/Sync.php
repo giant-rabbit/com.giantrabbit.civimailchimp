@@ -29,13 +29,13 @@ class CRM_CiviMailchimp_Form_Sync extends CRM_Core_Form {
     $values = $this->exportValues();
     $mailchimp_sync_setting = CRM_CiviMailchimp_BAO_SyncSettings::findByGroupId($values['group']);
     $mailchimp_export_url = CRM_CiviMailchimp_Utils::formatMailchimpExportApiUrl($mailchimp_sync_setting->mailchimp_list_id);
-    list($contacts, $mailchimp_members) = $this->processForcedSync($mailchimp_sync_setting, $mailchimp_export_url);
+    list($contacts, $mailchimp_members) = self::processForcedSync($mailchimp_sync_setting, $mailchimp_export_url);
     parent::postProcess();
     CRM_Core_Session::setStatus(ts("%1 contacts were synced to Mailchimp and %2  Mailchimp members were synced to CiviCRM.", array(1 => count($contacts), 2 => count($mailchimp_members))), ts('CiviMailchimp Force Sync Successful'), 'success');
     CRM_Utils_System::redirect($this->controller->_entryURL);
   }
 
-  function processForcedSync($mailchimp_sync_setting, $mailchimp_export_url) {
+  static function processForcedSync($mailchimp_sync_setting, $mailchimp_export_url) {
     $contacts = self::forceCiviToMailchimpSync($mailchimp_sync_setting);
     $mailchimp_members = self::forceMailchimpToCiviSync($mailchimp_export_url, $mailchimp_sync_setting);
 

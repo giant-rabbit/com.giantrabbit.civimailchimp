@@ -38,6 +38,8 @@ CREATE TABLE `civimailchimp_sync_log` (
   `message` text NOT NULL COMMENT 'The log message.',
   `details` longtext DEFAULT NULL COMMENT 'The log message details.',
   `cleared` tinyint(1) DEFAULT 0 COMMENT 'The log message details.',
+  `civicrm_queue_item_id` int unsigned DEFAULT NULL COMMENT 'ID of the civicrm_queue_item record related to this error message.',
   `timestamp` int unsigned NOT NULL COMMENT 'The log message timestamp.',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT FK_civimailchimp_sync_log_queue_item_id FOREIGN KEY (`civicrm_queue_item_id`) REFERENCES `civicrm_queue_item`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;

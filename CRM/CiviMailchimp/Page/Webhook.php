@@ -42,12 +42,25 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
    * Add a Mailchimp subscriber to a CiviCRM Group.
    */
   static function mailchimpWebhookSubscribe($request_data) {
+    $config = CRM_Core_Config::singleton();
+    if ($config->debug) {
+      $request_data_log = print_r($request_data, TRUE);
+      CRM_Core_Error::debug_log_message("Mailchimp Webhook Request [subscribe]: \nSearching for contacts with the following data.\n{$request_data_log}");
+    }
     $contacts = CRM_CiviMailchimp_Utils::getContactsWithPrimaryOrBulkEmail($request_data['email'], FALSE);
     if (empty($contacts)) {
       $mailchimp_contact = CRM_CiviMailchimp_Utils::createContactFromMailchimpRequest($request_data);
+      if ($config->debug) {
+        $request_data_log = print_r($mailchimp_contact, TRUE);
+        CRM_Core_Error::debug_log_message("Mailchimp Webhook Request [subscribe]: \nExisting contact not found, so a new contact record was created with the following details.\n{$request_data_log}");
+      }
     }
     else {
       $mailchimp_contact = $contacts[0];
+      if ($config->debug) {
+        $request_data_log = print_r($mailchimp_contact, TRUE);
+        CRM_Core_Error::debug_log_message("Mailchimp Webhook Request [subscribe]: \nExisting contact found with the following details.\n{$request_data_log}");
+      }
     }
     CRM_CiviMailchimp_Utils::addContactToGroup($mailchimp_contact, $request_data['list_id']);
   }

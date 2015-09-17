@@ -308,7 +308,7 @@ class CRM_CiviMailchimp_Utils {
     foreach ($contact_ids as $contact_id) {
       $contact = self::getContactById($contact_id);
       $mailchimp_email = self::determineMailchimpEmailForContact($contact);
-      if ($email === $mailchimp_email) {
+      if (strcasecmp($email, $mailchimp_email) == 0) {
         $contacts[] = $contact;
       }
     }

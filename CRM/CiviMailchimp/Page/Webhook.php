@@ -79,7 +79,7 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
   static function mailchimpWebhookUpemail($request_data) {
     $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($request_data['old_email'], $request_data['list_id']);
     foreach ($mailchimp_contact->email as $email) {
-      if ($email->email === $request_data['old_email']) {
+      if (strcasecmp($email->email, $request_data['old_email']) == 0) {
         // We have to go the circuitous route to saving so we can trigger
         // CiviCRM's hooks to allow other extensions to act.
         $params = array();
@@ -104,7 +104,7 @@ class CRM_CiviMailchimp_Page_Webhook extends CRM_Core_Page {
   static function mailchimpWebhookCleaned($request_data) {
     $mailchimp_contact = CRM_CiviMailchimp_Utils::getContactInMailchimpListByEmail($request_data['email'], $request_data['list_id']);
     foreach ($mailchimp_contact->email as $email) {
-      if ($email->email === $request_data['email']) {
+      if (strcasecmp($email->email, $request_data['email']) == 0) {
         // We have to go the circuitous route to saving so we can trigger
         // CiviCRM's hooks to allow other extensions to act.
         $params = array();

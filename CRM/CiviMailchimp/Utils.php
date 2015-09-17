@@ -302,7 +302,7 @@ class CRM_CiviMailchimp_Utils {
     $result = CRM_Core_DAO::executeQuery($query, $params);
     $contact_ids = array();
     while ($result->fetch()) {
-      $contact_ids[] = $result->contact_id;
+      $contact_ids[$result->contact_id] = $result->contact_id;
     }
     $contacts = array();
     foreach ($contact_ids as $contact_id) {
